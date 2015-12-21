@@ -2,13 +2,11 @@
 
 #include <operator.h>
 
-class ReinhardOperator : public ToneMappingOperator {
+class SRGBOperator : public ToneMappingOperator {
 public:
-	ReinhardOperator() : ToneMappingOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
-
+	SRGBOperator() : ToneMappingOperator() {
 		shader->init(
-			"Reinhard",
+			"sRGB",
 
 
 			"#version 330\n"
@@ -23,21 +21,21 @@ public:
 			"#version 330\n"
 			"uniform sampler2D source;\n"
 			"uniform float exposure;\n"
-			"uniform float gamma;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
 			"float correct(float value) {\n"
-			"    return pow(value, 1/gamma);\n"
+			"	 if (value < 0.0031308)\n"
+			"	 	 return 12.92 * value;\n"
+			"    return 1.055 * pow(value, 0.41666) - 0.055;\n"
 			"}\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = color / (1 + color);\n"
 			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
 			"}"
 		);
 	}
 
 	std::string getString() const {
-		return "Reinhard";
+		return "sRGB";
 	}
 };

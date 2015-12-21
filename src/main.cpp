@@ -7,6 +7,7 @@
 #include <image.h>
 #include <operator.h>
 #include <operators/gamma.h>
+#include <operators/srgb.h>
 #include <operators/reinhard.h>
 
 using namespace std;
@@ -55,7 +56,7 @@ public:
 
 		new Label(m_window, "Tonemapping operator", "sans-bold");
 
-		m_tonemapSelection = new ComboBox(m_window, { "Gamma", "Reinhard" });
+		m_tonemapSelection = new ComboBox(m_window, { "Gamma", "sRGB", "Reinhard" });
 		setTonemapper(new GammaOperator());
 		m_tonemapSelection->setCallback([&](int index) {
 			ToneMappingOperator *op = nullptr;
@@ -63,6 +64,9 @@ public:
 				op = new GammaOperator();
 			}
 			else if (index == 1) {
+				op = new SRGBOperator();
+			}
+			else if (index == 2) {
 				op = new ReinhardOperator();
 			}
 

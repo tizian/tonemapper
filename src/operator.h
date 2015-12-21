@@ -30,6 +30,8 @@ public:
 		delete shader;
 	}
 
+	virtual std::string getString() const = 0;
+
 	ParameterMap parameters;
 	nanogui::GLShader *shader = nullptr;
 };

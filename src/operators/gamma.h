@@ -35,4 +35,8 @@ public:
 			"}"
 		);
 	}
+
+	std::string getString() const {
+		return "Gamma";
+	}
 };

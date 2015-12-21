@@ -38,6 +38,8 @@ add_executable(tonemapper
 	src/image.h
 	src/operator.h
 	src/operators/gamma.h
+	src/operators/reinhard.h
+	src/operators/srgb.h
 	src/main.cpp
 	src/image.cpp
 )
