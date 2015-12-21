@@ -23,27 +23,27 @@ public:
 		glfwSetWindowPos(glfwWindow(), 20, 60);
 		setBackground(Vector3f(0.8f, 0.8f, 0.8f));
 
-		auto *window = new Window(this, "Tone Mapper");
-		window->setPosition(Vector2i(15, 15));
-		window->setLayout(new GroupLayout());
+		m_window = new Window(this, "Tone Mapper");
+		m_window->setPosition(Vector2i(15, 15));
+		m_window->setLayout(new GroupLayout());
 
-		auto *openBtn = new Button(window, "Open image");
-		//openBtn->setBackgroundColor(nanogui::Color(Vector3f(0.3f, 0.1f, 0.5f)));
+		auto *openBtn = new Button(m_window, "Open image");
+		openBtn->setBackgroundColor(nanogui::Color(Vector3f(0.3f, 0.1f, 0.5f)));
 		openBtn->setIcon(ENTYPO_ICON_FOLDER);
 		openBtn->setCallback([&] {
 			std::string filename = file_dialog({ {"exr", "OpenEXR"} }, false);
 			setImage(filename);
 		});
 
-		auto label = new Label(window, "Parameters", "sans-bold");
+		auto label = new Label(m_window, "Parameters", "sans-bold");
 		label->setFontSize(24.f);
 
 		for (auto &parameter : m_tonemap->parameters) {
 			auto &p = parameter.second;
 
-			new Label(window, parameter.first, "sans-bold");
+			new Label(m_window, parameter.first, "sans-bold");
 
-			auto *panel = new Widget(window);
+			auto *panel = new Widget(m_window);
 			panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
 
 			auto toolButton = new ToolButton(panel, ENTYPO_ICON_CYCLE);
@@ -90,6 +90,12 @@ public:
 		}
 
 		m_image = new Image(filename);
+
+		if (m_image->getWidth() <= 0 || m_image->getHeight() <= 0) {
+			return;
+		}
+
+		m_window->setPosition(Vector2i(15, 15));
 
 		m_scaledImageSize = Vector2i(MAIN_WIDTH, (MAIN_WIDTH * m_image->getHeight()) / m_image->getWidth());
 		m_windowSize = Vector2i(m_scaledImageSize.x(), m_scaledImageSize.y());
@@ -163,10 +169,9 @@ private:
 	Image *m_image = nullptr;
     uint32_t m_texture = 0;
 
+    nanogui::Window *m_window;
+
 	ToneMappingOperator *m_tonemap;
-    
-    float m_exposure = 1.f;
-    float m_gamma = 2.2f;
 
     const int MAIN_WIDTH = 960;
 	
