@@ -32,13 +32,13 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-file(GLOB_RECURSE ALL_FILES
-	"${PROJECT_SOURCE_DIR}/src/*.cpp"
-)
-
 add_executable(tonemapper
+	src/global.h
+	src/color.h
+	src/image.h
+	src/operator.h
+	src/operators/gamma.h
 	src/main.cpp
-
 	src/image.cpp
 )
 

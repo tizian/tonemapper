@@ -1,5 +1,7 @@
 #pragma once
 
+#include <global.h>
+
 #include <color.h>
 
 class Image {
@@ -16,7 +18,6 @@ public:
     inline int getWidth() const { return m_size.x(); }
     inline int getHeight() const { return m_size.y(); }
 
-    void saveAsEXR(const std::string &filename);
     void saveAsPNG(const std::string &filename);   
 
 private:

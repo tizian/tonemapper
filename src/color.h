@@ -1,5 +1,7 @@
 #pragma once
 
+#include <global.h>
+
 #include <Eigen/Core>
 
 struct Color3f : public Eigen::Array3f {
