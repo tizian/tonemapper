@@ -1,0 +1,6 @@
+[submodule "ext/nanogui"]
+	path = ext/nanogui
+	url = git://github.com/wjakob/nanogui.git
+[submodule "ext/filesystem"]
+	path = ext/filesystem
+	url = https://github.com/wjakob/filesystem.git
