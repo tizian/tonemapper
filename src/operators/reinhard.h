@@ -37,6 +37,13 @@ public:
 		);
 	}
 
+	virtual float correct(float value, float exposure) const {
+		float gamma = parameters.at("Gamma").value;
+		value *= exposure;
+		value = value / (1.f + value);
+		return std::pow(value, 1.f/gamma);
+	}
+
 	std::string getString() const {
 		return "Reinhard";
 	}

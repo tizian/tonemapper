@@ -36,6 +36,12 @@ public:
 		);
 	}
 
+	virtual float correct(float value, float exposure) const {
+		float gamma = parameters.at("Gamma").value;
+		value *= exposure;
+		return std::pow(value, 1.f/gamma);
+	}
+
 	std::string getString() const {
 		return "Gamma";
 	}

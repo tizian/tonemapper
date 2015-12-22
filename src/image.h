@@ -3,6 +3,7 @@
 #include <global.h>
 
 #include <color.h>
+#include <operator.h>
 
 class Image {
 public:
@@ -18,7 +19,7 @@ public:
     inline int getWidth() const { return m_size.x(); }
     inline int getHeight() const { return m_size.y(); }
 
-    void saveAsPNG(const std::string &filename);   
+    void saveAsPNG(const std::string &filename, ToneMappingOperator *tonemap, float exposure = 1.f) const;
 
 private:
     std::unique_ptr<Color3f[]> m_pixels;

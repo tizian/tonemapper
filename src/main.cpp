@@ -57,6 +57,9 @@ public:
 		saveBtn->setIcon(ENTYPO_ICON_SAVE);
 		saveBtn->setCallback([&] {
 			std::string filename = file_dialog({ { "png", "Portable Network Graphics" } }, true);
+			if (m_image) {
+				m_image->saveAsPNG(filename, m_tonemap, m_exposure);
+			}
 		});
 
 		new Label(m_window, "Exposure", "sans-bold");

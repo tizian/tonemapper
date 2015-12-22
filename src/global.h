@@ -24,3 +24,9 @@ inline float lerp(float t, float min, float max) {
 inline float inverseLerp(float v, float min, float max) {
 	return (v - min) / (max - min);
 }
+
+inline float clamp(float v, float min, float max) {
+	if (v <= min) return min;
+	if (v >= max) return max;
+	return v;
+}

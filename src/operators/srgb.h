@@ -35,6 +35,14 @@ public:
 		);
 	}
 
+	virtual float correct(float value, float exposure) const {
+		value *= exposure;
+		if (value < 0.0031308) {
+			return 12.92 * value;
+		}
+		return 1.055 * std::pow(value, 0.41666) - 0.055;
+	}
+
 	std::string getString() const {
 		return "sRGB";
 	}

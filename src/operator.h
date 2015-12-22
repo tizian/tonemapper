@@ -28,6 +28,8 @@ public:
 		delete shader;
 	}
 
+	virtual float correct(float value, float exposure = 1.f) const = 0;
+
 	virtual std::string getString() const = 0;
 
 	ParameterMap parameters;
