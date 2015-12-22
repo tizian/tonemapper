@@ -30,8 +30,12 @@ public:
 
 	virtual float correct(float value, float exposure = 1.f) const = 0;
 
-	virtual std::string getString() const = 0;
+	virtual std::string getString() const {
+		return name;
+	}
 
 	ParameterMap parameters;
 	nanogui::GLShader *shader = nullptr;
+	std::string name;
+	int index;
 };

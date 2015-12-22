@@ -51,67 +51,14 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 		}
 	});
 
-	new Label(m_window, "Exposure", "sans-bold");
+	setExposureMode(0);
 
-	auto *panel = new Widget(m_window);
-	panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 10));
+	setTonemapMode(0);
 
-	auto toolButton = new ToolButton(panel, ENTYPO_ICON_CYCLE);
-	toolButton->setFlags(Button::NormalButton);
-
-	auto *slider = new Slider(panel);
-	slider->setValue(0.5f);
-
-	auto *label = new Label(panel, "2^", "sans-bold");
-	label->setFontSize(16);
-
-	auto textBox = new FloatBox<float>(panel);
-	textBox->setFixedSize(Vector2i(50, 22));
-	textBox->numberFormat("%.1f");
-	textBox->setValue(0.f);
-	textBox->setAlignment(TextBox::Alignment::Right);
-	textBox->setEditable(true);
-	textBox->setCallback([&, slider, textBox](float v) {
-		v = clamp(v, -10.f, 10.f);
-		textBox->setValue(v);
-		slider->setValue(inverseLerp(v, -10.f, 10.f));
-		m_exposure = std::pow(2.f, v);
-	});
-
-	slider->setCallback([&, textBox](float t) {
-		float tmp = (t - 0.5f) * 20.f;
-		m_exposure = std::pow(2.f, tmp);
-		textBox->setValue(tmp);
-	});
-
-	toolButton->setCallback([&, slider, textBox] {
-		m_exposure = 1.f;
-		slider->setValue(0.5f);
-		textBox->setValue(0.f);
-	});
-
-	new Label(m_window, "Tonemapping operator", "sans-bold");
-
-	m_tonemapSelection = new ComboBox(m_window, { "Gamma", "sRGB", "Reinhard" });
-	setTonemap(new GammaOperator());
-	m_tonemapSelection->setCallback([&](int index) {
-		TonemapOperator *op = nullptr;
-		if (index == 0) {
-			op = new GammaOperator();
-		}
-		else if (index == 1) {
-			op = new SRGBOperator();
-		}
-		else if (index == 2) {
-			op = new ReinhardOperator();
-		}
-
-		if (op) {
-			setTonemap(op);
-		}
-	});
-
-	refreshGraph();
+	m_exposureSelection->setEnabled(false);
+	setEnabledRecursive(m_exposureWidget, false);
+	m_tonemapSelection->setEnabled(false);
+	setEnabledRecursive(m_tonemapWidget, false);
 
 	performLayout(mNVGContext);
 
@@ -139,6 +86,11 @@ void TonemapperScreen::setImage(const std::string &filename) {
 		return;
 	}
 
+	m_exposureSelection->setEnabled(true);
+	setEnabledRecursive(m_exposureWidget, true);
+	m_tonemapSelection->setEnabled(true);
+	setEnabledRecursive(m_tonemapWidget, true);
+
 	m_window->setPosition(Vector2i(15, 15));
 
 	m_scaledImageSize = Vector2i(MAIN_WIDTH, (MAIN_WIDTH * m_image->getHeight()) / m_image->getWidth());
@@ -153,7 +105,7 @@ void TonemapperScreen::setImage(const std::string &filename) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-void TonemapperScreen::setTonemap(TonemapOperator *tonemap) {
+void TonemapperScreen::setTonemapMode(int index) {
 	using namespace nanogui;
 
 	if (m_tonemap) {
@@ -161,7 +113,18 @@ void TonemapperScreen::setTonemap(TonemapOperator *tonemap) {
 		m_tonemap = nullptr;
 	}
 
-	m_tonemap = tonemap;
+	if (index == 0) {
+		m_tonemap = new GammaOperator();
+	}
+	else if (index == 1) {
+		m_tonemap = new SRGBOperator();
+	}
+	else if (index == 2) {
+		m_tonemap = new ReinhardOperator();
+	}
+	else {
+		m_tonemap = new GammaOperator();	// just a safety
+	}
 
 	MatrixXu indices(3, 2);
 	indices.col(0) << 0, 1, 2;
@@ -177,19 +140,35 @@ void TonemapperScreen::setTonemap(TonemapOperator *tonemap) {
 	m_tonemap->shader->uploadIndices(indices);
 	m_tonemap->shader->uploadAttrib("position", positions);
 
-	if (m_paramWidget) {
-		m_window->removeChild(m_paramWidget);
+	if (m_tonemapLabel) {
+		m_window->removeChild(m_tonemapLabel);
 	}
 
-	m_paramWidget = new Widget(m_window);
-	m_paramWidget->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
+	m_tonemapLabel = new Label(m_window, "Tonemapping operator", "sans-bold");
+
+	if (m_tonemapSelection) {
+		m_window->removeChild(m_tonemapSelection);
+	}
+
+	m_tonemapSelection = new ComboBox(m_window, { "Gamma", "sRGB", "Reinhard" });
+	m_tonemapSelection->setCallback([&](int index) {
+		setTonemapMode(index);
+	});
+	m_tonemapSelection->setSelectedIndex(index);
+
+	if (m_tonemapWidget) {
+		m_window->removeChild(m_tonemapWidget);
+	}
+
+	m_tonemapWidget = new Widget(m_window);
+	m_tonemapWidget->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
 
 	for (auto &parameter : m_tonemap->parameters) {
 		auto &p = parameter.second;
 
-		new Label(m_paramWidget, parameter.first, "sans-bold");
+		new Label(m_tonemapWidget, parameter.first, "sans-bold");
 
-		auto *panel = new Widget(m_paramWidget);
+		auto *panel = new Widget(m_tonemapWidget);
 		panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
 
 		auto toolButton = new ToolButton(panel, ENTYPO_ICON_CYCLE);
@@ -231,6 +210,115 @@ void TonemapperScreen::setTonemap(TonemapOperator *tonemap) {
 	performLayout(mNVGContext);
 }
 
+void TonemapperScreen::setExposureMode(int index) {
+	using namespace nanogui;
+
+	if (m_exposureLabel) {
+		m_window->removeChild(m_exposureLabel);
+	}
+
+	m_exposureLabel = new Label(m_window, "Exposure mode", "sans-bold");
+
+	if (m_exposureSelection) {
+		m_window->removeChild(m_exposureSelection);
+	}
+
+	m_exposureSelection = new ComboBox(m_window, { "Manual", "Key value", "Auto" });
+	m_exposureSelection->setCallback([&](int index) {
+		setExposureMode(index);
+	});
+	m_exposureSelection->setSelectedIndex(index);
+
+	if (m_exposureWidget) {
+		m_window->removeChild(m_exposureWidget);
+	}
+
+	m_exposureWidget = new Widget(m_window);
+	m_exposureWidget->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
+
+	if (index == 0) {
+		new Label(m_exposureWidget, "log2 Exposure", "sans-bold");
+	}
+	else if (index == 1) {
+		new Label(m_exposureWidget, "Alpha", "sans-bold");
+	}
+
+	auto *panel = new Widget(m_exposureWidget);
+	panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
+
+	ToolButton *toolButton;
+	Slider *slider;
+	FloatBox<float> *textBox;
+
+	if (index == 0 || index == 1) {
+		toolButton = new ToolButton(panel, ENTYPO_ICON_CYCLE);
+		toolButton->setFlags(Button::NormalButton);
+
+		slider = new Slider(panel);
+
+		textBox = new FloatBox<float>(panel);
+		textBox->setFixedSize(Vector2i(50, 22));
+		textBox->numberFormat("%.1f");
+		textBox->setAlignment(TextBox::Alignment::Right);
+		textBox->setEditable(true);
+	}
+	
+	if (index == 0) {
+		m_exposure = 1.f;
+		slider->setValue(0.5f);
+		textBox->setValue(0.f);
+
+		textBox->setCallback([&, slider, textBox](float v) {
+			v = clamp(v, -10.f, 10.f);
+			textBox->setValue(v);
+			slider->setValue(inverseLerp(v, -10.f, 10.f));
+			m_exposure = std::pow(2.f, v);
+		});
+
+		slider->setCallback([&, textBox](float t) {
+			float tmp = (t - 0.5f) * 20.f;
+			m_exposure = std::pow(2.f, tmp);
+			textBox->setValue(tmp);
+		});
+
+		toolButton->setCallback([&, slider, textBox] {
+			m_exposure = 1.f;
+			slider->setValue(0.5f);
+			textBox->setValue(0.f);
+		});
+	}
+	else if (index == 1) {
+		slider->setValue(0.18f);
+		textBox->setValue(0.18f);
+		m_exposure = 0.18f / m_image->getAverageLuminance();
+
+		textBox->setCallback([&, slider, textBox](float v) {
+			v = clamp(v, 0.f, 1.f);
+			textBox->setValue(v);
+			slider->setValue(v);
+			m_exposure = v / m_image->getAverageLuminance();
+		});
+
+		slider->setCallback([&, textBox](float t) {
+			m_exposure = t / m_image->getAverageLuminance();
+			textBox->setValue(t);
+		});
+
+		toolButton->setCallback([&, slider, textBox] {
+			m_exposure = 0.18f / m_image->getAverageLuminance();
+			slider->setValue(0.18f);
+		textBox->setValue(0.18f);
+		});
+	}
+	else if (index == 2) {
+		m_exposure = m_image->getAutoKeyValue() / m_image->getAverageLuminance();
+	}
+
+	if (m_tonemap) {
+		setTonemapMode(m_tonemap->index);
+	}
+}
+
 void TonemapperScreen::refreshGraph() {
 	using namespace nanogui;
 
@@ -239,9 +327,9 @@ void TonemapperScreen::refreshGraph() {
 	}
 
 	m_graph = new Graph(m_window, "luminance [0, 1]");
-	VectorXf &func = m_graph->values();
 	m_graph->setFixedHeight(100);
 	m_graph->setFooter("log luminance [-5, 5]");
+	VectorXf &func = m_graph->values();
 	int precision = 50;
 	func.resize(precision);
 	for (int i = 0; i < precision; ++i) {
@@ -309,5 +397,12 @@ void TonemapperScreen::drawContents() {
 		width = (GLsizei) mFBSize[0];
 		height = (GLsizei) mFBSize[1];
 		glViewport(x, y, width, height);
+	}
+}
+
+void TonemapperScreen::setEnabledRecursive(nanogui::Widget *widget, bool enabled) {
+	widget->setEnabled(enabled);
+	for (auto c : widget->children()) {
+		setEnabledRecursive(c, enabled);
 	}
 }

@@ -7,6 +7,9 @@ public:
 	ReinhardOperator() : TonemapOperator() {
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
 
+		name = "Reinhard";
+		index = 2;
+
 		shader->init(
 			"Reinhard",
 

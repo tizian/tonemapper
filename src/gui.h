@@ -18,7 +18,8 @@ public:
 	~TonemapperScreen();
 
 	void setImage(const std::string &filename);
-	void setTonemap(TonemapOperator *tonemap);
+	void setTonemapMode(int index);
+	void setExposureMode(int index);
 
 	void refreshGraph();
 
@@ -27,14 +28,20 @@ public:
 	virtual void drawContents() override;
 
 private:
+	void setEnabledRecursive(nanogui::Widget *widget, bool enabled);
+
 	Image 				*m_image = nullptr;
 	TonemapOperator 	*m_tonemap = nullptr;
     
 	float 			 	 m_exposure = 1.f;
 
     nanogui::Window 	*m_window = nullptr;
+    nanogui::Label 		*m_tonemapLabel = nullptr;
 	nanogui::ComboBox 	*m_tonemapSelection = nullptr;
-	nanogui::Widget 	*m_paramWidget = nullptr;
+	nanogui::Widget 	*m_tonemapWidget = nullptr;
+	nanogui::Label 		*m_exposureLabel = nullptr;
+	nanogui::ComboBox 	*m_exposureSelection = nullptr;
+	nanogui::Widget 	*m_exposureWidget = nullptr;
 	nanogui::Graph 		*m_graph = nullptr;
 
 	const int 			 MAIN_WIDTH = 960;

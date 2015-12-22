@@ -7,6 +7,9 @@ public:
 	GammaOperator() : TonemapOperator() {
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
 
+		name = "Gamma";
+		index = 0;
+
 		shader->init(
 			"Gamma",
 
@@ -38,9 +41,5 @@ public:
 		float gamma = parameters.at("Gamma").value;
 		value *= exposure;
 		return std::pow(value, 1.f/gamma);
-	}
-
-	std::string getString() const override {
-		return "Gamma";
 	}
 };

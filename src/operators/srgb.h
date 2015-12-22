@@ -5,6 +5,9 @@
 class SRGBOperator : public TonemapOperator {
 public:
 	SRGBOperator() : TonemapOperator() {
+		name = "sRGB";
+		index = 1;
+
 		shader->init(
 			"sRGB",
 
@@ -39,9 +42,5 @@ public:
 			return 12.92f * value;
 		}
 		return 1.055f * std::pow(value, 0.41666f) - 0.055f;
-	}
-
-	std::string getString() const override {
-		return "sRGB";
 	}
 };

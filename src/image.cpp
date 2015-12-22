@@ -86,6 +86,24 @@ Image::Image(const std::string &filename) {
 		}
 	}
 
+	float delta = 1e-4;
+	m_averageLuminance = 0.f;
+
+	for (int i = 0; i < m_size.y(); ++i) {
+		for (int j = 0; j < m_size.x(); ++j) {
+			float tmp = ref(i, j).getLuminance();
+
+			m_averageLuminance += std::log(delta + tmp);
+		}
+	}
+
+	m_averageLuminance = std::exp(m_averageLuminance / (m_size.x() * m_size.y()));
+
+	m_autoKeyValue = 1.03f - 2.f / (2.f + std::log10(m_averageLuminance + 1.f));		// Formula taken from "Perceptual Effects in Real-time Tone Mapping" by Krawczyk et al.
+
+	cout << m_averageLuminance << endl;
+	cout << m_autoKeyValue << endl;
+
 	FreeEXRImage(&img);
 }
 
