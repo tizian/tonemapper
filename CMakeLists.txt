@@ -36,12 +36,16 @@ add_executable(tonemapper
 	src/global.h
 	src/color.h
 	src/image.h
-	src/operator.h
+	src/gui.h
+
+	src/tonemap.h
 	src/operators/gamma.h
 	src/operators/reinhard.h
 	src/operators/srgb.h
-	src/main.cpp
+
 	src/image.cpp
+	src/gui.cpp
+	src/main.cpp
 )
 
 target_link_libraries(tonemapper nanogui ${NANOGUI_EXTRA_LIBS})

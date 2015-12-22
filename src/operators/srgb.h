@@ -1,13 +1,12 @@
 #pragma once
 
-#include <operator.h>
+#include <tonemap.h>
 
-class SRGBOperator : public ToneMappingOperator {
+class SRGBOperator : public TonemapOperator {
 public:
-	SRGBOperator() : ToneMappingOperator() {
+	SRGBOperator() : TonemapOperator() {
 		shader->init(
 			"sRGB",
-
 
 			"#version 330\n"
 			"in vec2 position;\n"
@@ -16,7 +15,6 @@ public:
 			"    gl_Position = vec4(position.x*2-1, position.y*2-1, 0.0, 1.0);\n"
 			"    uv = vec2(position.x, 1-position.y);\n"
 			"}",
-
 
 			"#version 330\n"
 			"uniform sampler2D source;\n"
@@ -35,15 +33,15 @@ public:
 		);
 	}
 
-	virtual float correct(float value, float exposure) const {
+	virtual float correct(float value, float exposure) const override {
 		value *= exposure;
-		if (value < 0.0031308) {
-			return 12.92 * value;
+		if (value < 0.0031308f) {
+			return 12.92f * value;
 		}
-		return 1.055 * std::pow(value, 0.41666) - 0.055;
+		return 1.055f * std::pow(value, 0.41666f) - 0.055f;
 	}
 
-	std::string getString() const {
+	std::string getString() const override {
 		return "sRGB";
 	}
 };

@@ -1,15 +1,14 @@
 #pragma once
 
-#include <operator.h>
+#include <tonemap.h>
 
-class GammaOperator : public ToneMappingOperator {
+class GammaOperator : public TonemapOperator {
 public:
-	GammaOperator() : ToneMappingOperator() {
+	GammaOperator() : TonemapOperator() {
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
 
 		shader->init(
 			"Gamma",
-
 
 			"#version 330\n"
 			"in vec2 position;\n"
@@ -18,7 +17,6 @@ public:
 			"    gl_Position = vec4(position.x*2-1, position.y*2-1, 0.0, 1.0);\n"
 			"    uv = vec2(position.x, 1-position.y);\n"
 			"}",
-
 
 			"#version 330\n"
 			"uniform sampler2D source;\n"
@@ -36,13 +34,13 @@ public:
 		);
 	}
 
-	virtual float correct(float value, float exposure) const {
+	virtual float correct(float value, float exposure) const override {
 		float gamma = parameters.at("Gamma").value;
 		value *= exposure;
 		return std::pow(value, 1.f/gamma);
 	}
 
-	std::string getString() const {
+	std::string getString() const override {
 		return "Gamma";
 	}
 };

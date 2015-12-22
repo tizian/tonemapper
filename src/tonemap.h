@@ -17,14 +17,14 @@ struct Parameter {
 
 typedef std::map<std::string, Parameter> ParameterMap;
 
-class ToneMappingOperator {
+class TonemapOperator {
 public:
-	ToneMappingOperator() {
+	TonemapOperator() {
 		parameters = ParameterMap();
 		shader = new nanogui::GLShader();
 	}
 
-	virtual ~ToneMappingOperator() {
+	virtual ~TonemapOperator() {
 		delete shader;
 	}
 
