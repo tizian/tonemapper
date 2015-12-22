@@ -120,6 +120,8 @@ public:
 			}
 		});
 
+		refreshGraph();
+
 		performLayout(mNVGContext);
 
 		drawAll();
@@ -209,18 +211,46 @@ public:
 
 			textBox->setCallback([&](float v) {
 				p.value = v;
+				refreshGraph();
 			});
 
 			slider->setCallback([&, textBox](float t) {
 				p.value = lerp(t, p.minValue, p.maxValue);
 				textBox->setValue(p.value);
+				refreshGraph();
 			});
 
 			toolButton->setCallback([&, slider, textBox] {
 				p.value = p.defaultValue;
 				slider->setValue(inverseLerp(p.value, p.minValue, p.maxValue));
 				textBox->setValue(p.defaultValue);
+				refreshGraph();
 			});
+		}
+
+		refreshGraph();
+
+		performLayout(mNVGContext);
+	}
+
+	void refreshGraph() {
+		using namespace nanogui;
+
+		if (m_graph) {
+			m_window->removeChild(m_graph);
+		}
+
+		m_graph = new Graph(m_window, "luminance [0, 1]");
+		VectorXf &func = m_graph->values();
+		m_graph->setFixedHeight(100.f);
+		m_graph->setFooter("log luminance [-5, 5]");
+		int precision = 50;
+		func.resize(precision);
+		for (int i = 0; i < precision; ++i) {
+			float t = (float)i / precision;
+			float tmp = (t - 0.5f) * 10.f;
+			tmp = std::pow(2.f, tmp);
+			func[i] = clamp(m_tonemap->correct(tmp), 0.f, 1.f);
 		}
 
 		performLayout(mNVGContext);
@@ -286,6 +316,7 @@ private:
     nanogui::Window *m_window = nullptr;
 	nanogui::ComboBox *m_tonemapSelection = nullptr;
 	nanogui::Widget *m_paramWidget = nullptr;
+	nanogui::Graph *m_graph = nullptr;
 
 	ToneMappingOperator *m_tonemap = nullptr;
 
