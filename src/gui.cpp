@@ -1,16 +1,19 @@
-#pragma once
-
 #include <gui.h>
 
 #include <image.h>
 #include <tonemap.h>
+
+#include <operators/gamma.h>
+#include <operators/srgb.h>
+#include <operators/reinhard.h>
+#include <operators/reinhard_extended.h>
 
 TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600), "Tone Mapper", true, false) {
 	using namespace nanogui;
 
 	auto ctx = nvgContext();
 
-	glfwSetWindowPos(glfwWindow(), 20, 60);
+	glfwSetWindowPos(glfwWindow(), 20, 40);
 	setBackground(Vector3f(0.8f, 0.8f, 0.8f));
 
 	auto layout = new GroupLayout();
@@ -97,7 +100,7 @@ void TonemapperScreen::setImage(const std::string &filename) {
 	m_windowSize = Vector2i(m_scaledImageSize.x(), m_scaledImageSize.y());
 
 	setSize(m_windowSize);
-	glfwSetWindowPos(glfwWindow(), 20, 100);
+	glfwSetWindowPos(glfwWindow(), 20, 40);
 
 	glGenTextures(1, &m_texture);
 	glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -121,6 +124,9 @@ void TonemapperScreen::setTonemapMode(int index) {
 	}
 	else if (index == 2) {
 		m_tonemap = new ReinhardOperator();
+	}
+	else if (index == 3) {
+		m_tonemap = new ExtendedReinhardOperator();
 	}
 	else {
 		m_tonemap = new GammaOperator();	// just a safety
@@ -150,7 +156,7 @@ void TonemapperScreen::setTonemapMode(int index) {
 		m_window->removeChild(m_tonemapSelection);
 	}
 
-	m_tonemapSelection = new ComboBox(m_window, { "Gamma", "sRGB", "Reinhard" });
+	m_tonemapSelection = new ComboBox(m_window, { "Gamma", "sRGB", "Reinhard", "Reinhard (Extended)" });
 	m_tonemapSelection->setCallback([&](int index) {
 		setTonemapMode(index);
 	});

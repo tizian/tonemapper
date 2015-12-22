@@ -5,10 +5,6 @@
 #include <nanogui/glutil.h>
 #include <nanogui/nanogui.h>
 
-#include <operators/gamma.h>
-#include <operators/srgb.h>
-#include <operators/reinhard.h>
-
 class Image;
 class TonemapOperator;
 

@@ -2,16 +2,17 @@
 
 #include <tonemap.h>
 
-class ReinhardOperator : public TonemapOperator {
+class ExtendedReinhardOperator : public TonemapOperator {
 public:
-	ReinhardOperator() : TonemapOperator() {
+	ExtendedReinhardOperator() : TonemapOperator() {
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
+		parameters["L_white"] = Parameter(1.f, 0.f, 5.f, "L_white");
 
-		name = "Reinhard";
-		index = 2;
+		name = "Reinhard (Extended)";
+		index = 3;
 
 		shader->init(
-			"Reinhard",
+			"ExtendedReinhard",
 
 			"#version 330\n"
 			"in vec2 position;\n"
@@ -25,6 +26,7 @@ public:
 			"uniform sampler2D source;\n"
 			"uniform float exposure;\n"
 			"uniform float gamma;\n"
+			"uniform float L_white;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
 			"float correct(float value) {\n"
@@ -32,7 +34,7 @@ public:
 			"}\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = color / (1 + color);\n"
+			"	 color = (color * (1 + color / (L_white * L_white))) / (1 + color);\n"
 			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
 			"}"
 		);
@@ -40,8 +42,9 @@ public:
 
 	virtual float correct(float value, float exposure) const override {
 		float gamma = parameters.at("Gamma").value;
+		float L_white = parameters.at("L_white").value;
 		value *= exposure;
-		value = value / (1.f + value);
+		value = (value * (1.f + value / (L_white * L_white))) / (1.f + value);
 		return std::pow(value, 1.f/gamma);
 	}
 };

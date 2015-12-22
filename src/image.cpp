@@ -99,10 +99,8 @@ Image::Image(const std::string &filename) {
 
 	m_averageLuminance = std::exp(m_averageLuminance / (m_size.x() * m_size.y()));
 
-	m_autoKeyValue = 1.03f - 2.f / (2.f + std::log10(m_averageLuminance + 1.f));		// Formula taken from "Perceptual Effects in Real-time Tone Mapping" by Krawczyk et al.
-
-	cout << m_averageLuminance << endl;
-	cout << m_autoKeyValue << endl;
+	// Formula taken from "Perceptual Effects in Real-time Tone Mapping" by Krawczyk et al.
+	m_autoKeyValue = 1.03f - 2.f / (2.f + std::log10(m_averageLuminance + 1.f));
 
 	FreeEXRImage(&img);
 }
