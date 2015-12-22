@@ -21,8 +21,6 @@ class ToneMappingOperator {
 public:
 	ToneMappingOperator() {
 		parameters = ParameterMap();
-		parameters["Exposure"] = Parameter(1.f, 0.f, 10.f, "exposure");
-
 		shader = new nanogui::GLShader();
 	}
 

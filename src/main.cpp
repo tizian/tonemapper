@@ -15,7 +15,7 @@ using namespace std;
 class TonemapperScreen : public nanogui::Screen {
 public:
 	TonemapperScreen()
-		: nanogui::Screen(Eigen::Vector2i(1280, 960), "Tone Mapper", true, false) {
+		: nanogui::Screen(Eigen::Vector2i(800, 600), "Tone Mapper", true, false) {
 
 		using namespace nanogui;
 
@@ -24,9 +24,14 @@ public:
 		glfwSetWindowPos(glfwWindow(), 20, 60);
 		setBackground(Vector3f(0.8f, 0.8f, 0.8f));
 
+		auto layout = new GroupLayout();
+		layout->setSpacing(10);
+		layout->setGroupSpacing(20);
+		layout->setGroupIndent(14);
+
 		m_window = new Window(this, "Tone Mapper");
 		m_window->setPosition(Vector2i(15, 15));
-		m_window->setLayout(new GroupLayout());
+		m_window->setLayout(layout);
 
 		auto about = new Button(m_window->buttonPanel(), "", ENTYPO_ICON_INFO);
 		about->setCallback([&, ctx] {
@@ -54,6 +59,43 @@ public:
 			std::string filename = file_dialog({ { "png", "Portable Network Graphics" } }, true);
 		});
 
+		new Label(m_window, "Exposure", "sans-bold");
+
+		auto *panel = new Widget(m_window);
+		panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 10));
+
+		auto toolButton = new ToolButton(panel, ENTYPO_ICON_CYCLE);
+		toolButton->setFlags(Button::NormalButton);
+
+		auto *slider = new Slider(panel);
+		slider->setValue(0.5f);
+
+		auto *label = new Label(panel, "2^", "sans-bold");
+		label->setFontSize(16);
+
+		auto textBox = new FloatBox<float>(panel);
+		textBox->setFixedSize(Vector2i(50, 22));
+		textBox->numberFormat("%.1f");
+		textBox->setValue(0.f);
+		textBox->setAlignment(TextBox::Alignment::Right);
+		textBox->setEditable(true);
+
+		textBox->setCallback([&](float v) {
+			m_exposure = std::pow(2.f, v);
+		});
+
+		slider->setCallback([&, textBox](float t) {
+			float tmp = (t - 0.5f) * 20.f;
+			m_exposure = std::pow(2.f, tmp);
+			textBox->setValue(tmp);
+		});
+
+		toolButton->setCallback([&, slider, textBox] {
+			m_exposure = 1.f;
+			slider->setValue(0.5f);
+			textBox->setValue(0.f);
+		});
+
 		new Label(m_window, "Tonemapping operator", "sans-bold");
 
 		m_tonemapSelection = new ComboBox(m_window, { "Gamma", "sRGB", "Reinhard" });
@@ -74,6 +116,8 @@ public:
 				setTonemapper(op);
 			}
 		});
+
+		performLayout(mNVGContext);
 
 		drawAll();
 		setVisible(true);
@@ -152,14 +196,13 @@ public:
 
 			auto *slider = new Slider(panel);
 			slider->setValue(inverseLerp(p.defaultValue, p.minValue, p.maxValue));
-			// slider->setFixedWidth(SIDE_WIDTH - 160);
 
 			auto textBox = new FloatBox<float>(panel);
-			textBox->setFixedSize(Vector2i(60, 25));
+			textBox->setFixedSize(Vector2i(50, 22));
+			textBox->numberFormat("%.2f");
 			textBox->setValue(p.defaultValue);
 			textBox->setAlignment(TextBox::Alignment::Right);
 			textBox->setEditable(true);
-			textBox->numberFormat("%.1f");
 
 			textBox->setCallback([&](float v) {
 				p.value = v;
@@ -177,7 +220,6 @@ public:
 			});
 		}
 
-		// sidebar->setSize(Vector2i(SIDE_WIDTH, m_scaledImageSize.y()));
 		performLayout(mNVGContext);
 	}
 
@@ -188,8 +230,19 @@ public:
             setVisible(false);
             return true;
         }
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+			m_window->setVisible(!m_window->visible());
+			return true;
+		}
         return false;
     }
+
+	virtual bool dropEvent(const std::vector<std::string> & filenames) {
+		if (filenames.size() > 0) {
+			setImage(filenames[0]);
+		}
+		return true;
+	}
 
 	~TonemapperScreen() {
 		glDeleteTextures(1, &m_texture);
@@ -210,6 +263,7 @@ public:
 			glViewport(mPixelRatio * (mFBSize[0]-m_scaledImageSize[0])/2, mPixelRatio * (mFBSize[1] - m_scaledImageSize[1]) / 2, mPixelRatio*m_scaledImageSize[0], mPixelRatio*m_scaledImageSize[1]);
 			m_tonemap->shader->bind();
 			m_tonemap->shader->setUniform("source", 0);
+			m_tonemap->shader->setUniform("exposure", m_exposure);
 
 			for (auto &parameter : m_tonemap->parameters) {
 				Parameter &p = parameter.second;
@@ -231,6 +285,8 @@ private:
 	nanogui::Widget *m_paramWidget = nullptr;
 
 	ToneMappingOperator *m_tonemap = nullptr;
+
+	float m_exposure = 1.f;
 
     const int MAIN_WIDTH = 960;
 	
