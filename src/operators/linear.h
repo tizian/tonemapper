@@ -2,16 +2,15 @@
 
 #include <tonemap.h>
 
-class GammaOperator : public TonemapOperator {
+class LinearOperator : public TonemapOperator {
 public:
-	GammaOperator() : TonemapOperator() {
+	LinearOperator() : TonemapOperator() {
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
 
-		name = "Gamma";
-		index = 0;
+		name = "Linear";
 
 		shader->init(
-			"Gamma",
+			"Linear",
 
 			"#version 330\n"
 			"in vec2 position;\n"

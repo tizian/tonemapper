@@ -9,7 +9,6 @@ public:
 		parameters["L_white"] = Parameter(1.f, 0.f, 5.f, "L_white");
 
 		name = "Reinhard (Extended)";
-		index = 3;
 
 		shader->init(
 			"ExtendedReinhard",

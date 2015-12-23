@@ -26,8 +26,10 @@ public:
 private:
 	void setEnabledRecursive(nanogui::Widget *widget, bool enabled);
 
+	std::vector<TonemapOperator *> m_tonemapOperators;
+	int m_tonemapIndex;
+
 	Image 				*m_image = nullptr;
-	TonemapOperator 	*m_tonemap = nullptr;
     
 	float 			 	 m_exposure = 1.f;
 

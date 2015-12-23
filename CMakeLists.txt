@@ -39,7 +39,7 @@ add_executable(tonemapper
 	src/gui.h
 
 	src/tonemap.h
-	src/operators/gamma.h
+	src/operators/linear.h
 	src/operators/reinhard.h
 	src/operators/reinhard_extended.h
 	src/operators/srgb.h
