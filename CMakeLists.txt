@@ -41,6 +41,7 @@ add_executable(tonemapper
 	src/tonemap.h
 	src/operators/linear.h
 	src/operators/maxdivision.h
+	src/operators/meanvalue.h
 	src/operators/reinhard.h
 	src/operators/reinhard_extended.h
 	src/operators/srgb.h

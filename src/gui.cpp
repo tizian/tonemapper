@@ -5,6 +5,7 @@
 
 #include <operators/linear.h>
 #include <operators/maxdivision.h>
+#include <operators/meanvalue.h>
 #include <operators/srgb.h>
 #include <operators/reinhard.h>
 #include <operators/reinhard_extended.h>
@@ -19,6 +20,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new ReinhardOperator());
 	m_tonemapOperators.push_back(new ExtendedReinhardOperator());
 	m_tonemapOperators.push_back(new MaximumDivisionOperator());
+	m_tonemapOperators.push_back(new MeanValueOperator());
 
 	auto ctx = nvgContext();
 
