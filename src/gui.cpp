@@ -4,6 +4,7 @@
 #include <tonemap.h>
 
 #include <operators/linear.h>
+#include <operators/maxdivision.h>
 #include <operators/srgb.h>
 #include <operators/reinhard.h>
 #include <operators/reinhard_extended.h>
@@ -17,6 +18,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new SRGBOperator());
 	m_tonemapOperators.push_back(new ReinhardOperator());
 	m_tonemapOperators.push_back(new ExtendedReinhardOperator());
+	m_tonemapOperators.push_back(new MaximumDivisionOperator());
 
 	auto ctx = nvgContext();
 
@@ -103,6 +105,10 @@ void TonemapperScreen::setImage(const std::string &filename) {
 		return;
 	}
 
+	for (auto tm : m_tonemapOperators) {
+		tm->setParameters(m_image);
+	}
+
 	m_exposureSelection->setEnabled(true);
 	setEnabledRecursive(m_exposureWidget, true);
 	m_tonemapSelection->setEnabled(true);
@@ -171,6 +177,7 @@ void TonemapperScreen::setTonemapMode(int index) {
 
 	for (auto &parameter : m_tonemapOperators[m_tonemapIndex]->parameters) {
 		auto &p = parameter.second;
+		if (p.constant) continue;
 
 		new Label(m_tonemapWidget, parameter.first, "sans-bold");
 

@@ -15,6 +15,7 @@ public:
     const Color3f &ref(int i, int j) const;
     Color3f &ref(int i, int j);
 
+    inline float getMaximumLuminance() const { return m_maximumLuminance; }
     inline float getAverageLuminance() const { return m_averageLuminance; }
 	inline float getAutoKeyValue() const { return m_autoKeyValue; }
 
@@ -29,6 +30,7 @@ private:
 
     Eigen::Vector2i m_size;
 
+    float m_maximumLuminance;
     float m_averageLuminance;
 	float m_autoKeyValue;
 };

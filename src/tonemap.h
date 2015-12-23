@@ -9,13 +9,18 @@ struct Parameter {
 	float minValue;
 	float maxValue;
 	std::string uniform;
+	bool constant;
 
 	Parameter() {}
 	Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform)
-		: value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue), uniform(uniform) {}
+		: value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue), uniform(uniform), constant(false) {}
+	Parameter(float value, const std::string &uniform)
+		: value(value), uniform(uniform), constant(true) {}
 };
 
 typedef std::map<std::string, Parameter> ParameterMap;
+
+class Image;
 
 class TonemapOperator {
 public:
@@ -29,6 +34,8 @@ public:
 	}
 
 	virtual float correct(float value, float exposure = 1.f) const = 0;
+
+	virtual void setParameters(const Image *image) {}
 
 	virtual std::string getString() const {
 		return name;

@@ -86,14 +86,15 @@ Image::Image(const std::string &filename) {
 		}
 	}
 
-	float delta = 1e-4;
+	float delta = 1e-4f;
 	m_averageLuminance = 0.f;
+	m_maximumLuminance = -1.f;
 
 	for (int i = 0; i < m_size.y(); ++i) {
 		for (int j = 0; j < m_size.x(); ++j) {
-			float tmp = ref(i, j).getLuminance();
-
-			m_averageLuminance += std::log(delta + tmp);
+			float lum = ref(i, j).getLuminance();
+			m_averageLuminance += std::log(delta + lum);
+			if (lum > m_maximumLuminance) m_maximumLuminance = lum;
 		}
 	}
 
