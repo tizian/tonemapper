@@ -88,20 +88,23 @@ Image::Image(const std::string &filename) {
 
 	float delta = 1e-4f;
 	m_averageLuminance = 0.f;
+	m_logAverageLuminance = 0.f;
 	m_maximumLuminance = -1.f;
 
 	for (int i = 0; i < m_size.y(); ++i) {
 		for (int j = 0; j < m_size.x(); ++j) {
 			float lum = ref(i, j).getLuminance();
-			m_averageLuminance += std::log(delta + lum);
+			m_averageLuminance += lum;
+			m_logAverageLuminance += std::log(delta + lum);
 			if (lum > m_maximumLuminance) m_maximumLuminance = lum;
 		}
 	}
 
-	m_averageLuminance = std::exp(m_averageLuminance / (m_size.x() * m_size.y()));
+	m_averageLuminance = m_averageLuminance / (m_size.x() * m_size.y());
+	m_logAverageLuminance = std::exp(m_logAverageLuminance / (m_size.x() * m_size.y()));
 
 	// Formula taken from "Perceptual Effects in Real-time Tone Mapping" by Krawczyk et al.
-	m_autoKeyValue = 1.03f - 2.f / (2.f + std::log10(m_averageLuminance + 1.f));
+	m_autoKeyValue = 1.03f - 2.f / (2.f + std::log10(m_logAverageLuminance + 1.f));
 
 	FreeEXRImage(&img);
 }

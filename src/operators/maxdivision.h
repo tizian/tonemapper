@@ -32,7 +32,7 @@ public:
 			"}\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = color / maxLum;\n"
+			"	 color = color / (exposure * maxLum);\n"
 			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
 			"}"
 		);
@@ -42,7 +42,7 @@ public:
 		float gamma = parameters.at("Gamma").value;
 		float maxLum = parameters.at("maxLum").value;
 		value *= exposure;
-		value /= maxLum;
+		value /= (exposure * maxLum);
 		return std::pow(value, 1.f/gamma);
 	}
 

@@ -2,15 +2,16 @@
 
 #include <tonemap.h>
 
-class MeanValueOperator : public TonemapOperator {
+class WardOperator : public TonemapOperator {
 public:
-	MeanValueOperator() : TonemapOperator() {
+	WardOperator() : TonemapOperator() {
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
+		parameters["max Ld"] = Parameter(100.f, 0.f, 200.f, "maxLd");
 
-		name = "Mean Value Mapping";
+		name = "Ward";
 
 		shader->init(
-			"MeanValue",
+			"Ward",
 
 			"#version 330\n"
 			"in vec2 position;\n"
@@ -24,7 +25,8 @@ public:
 			"uniform sampler2D source;\n"
 			"uniform float exposure;\n"
 			"uniform float gamma;\n"
-			"uniform float avgLum;\n"
+			"uniform float Lwa;\n"
+			"uniform float maxLd;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
 			"float correct(float value) {\n"
@@ -32,7 +34,8 @@ public:
 			"}\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = 0.5 * color / (exposure * avgLum);\n"
+			"	 float m = pow((1.219 + pow(maxLd/2.0, 0.4)) / (1.219 + pow(Lwa * exposure, 0.4)), 2.5) / maxLd;\n"
+			"	 color = m * color;\n"
 			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
 			"}"
 		);
@@ -40,13 +43,15 @@ public:
 
 	virtual float correct(float value, float exposure) const override {
 		float gamma = parameters.at("Gamma").value;
-		float avgLum = parameters.at("avgLum").value;
+		float Lwa = parameters.at("Lwa").value;
+		float maxLd = parameters.at("max Ld").value;
 		value *= exposure;
-		value = 0.5f * value / (exposure * avgLum);
+		float m = std::pow((1.219f + std::pow(maxLd/2.f, 0.4f)) / (1.219f + std::pow(Lwa * exposure, 0.4f)), 2.5f) / maxLd;
+		value = m * value;
 		return std::pow(value, 1.f/gamma);
 	}
 
 	virtual void setParameters(const Image *image) {
-		parameters["avgLum"] = Parameter(image->getAverageLuminance(), "avgLum");
+		parameters["Lwa"] = Parameter(image->getLogAverageLuminance(), "Lwa");
 	};
 };

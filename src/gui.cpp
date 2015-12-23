@@ -6,9 +6,10 @@
 #include <operators/linear.h>
 #include <operators/maxdivision.h>
 #include <operators/meanvalue.h>
-#include <operators/srgb.h>
 #include <operators/reinhard.h>
 #include <operators/reinhard_extended.h>
+#include <operators/srgb.h>
+#include <operators/ward.h>
 
 TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600), "Tone Mapper", true, false) {
 	using namespace nanogui;
@@ -19,6 +20,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new SRGBOperator());
 	m_tonemapOperators.push_back(new ReinhardOperator());
 	m_tonemapOperators.push_back(new ExtendedReinhardOperator());
+	m_tonemapOperators.push_back(new WardOperator());
 	m_tonemapOperators.push_back(new MaximumDivisionOperator());
 	m_tonemapOperators.push_back(new MeanValueOperator());
 
@@ -302,26 +304,26 @@ void TonemapperScreen::setExposureMode(int index) {
 	else if (index == 1) {
 		slider->setValue(0.18f);
 		textBox->setValue(0.18f);
-		m_exposure = 0.18f / m_image->getAverageLuminance();
+		m_exposure = 0.18f / m_image->getLogAverageLuminance();
 
 		textBox->setCallback([&, slider, textBox](float v) {
 			textBox->setValue(v);
-			m_exposure = v / m_image->getAverageLuminance();
+			m_exposure = v / m_image->getLogAverageLuminance();
 		});
 
 		slider->setCallback([&, textBox](float t) {
-			m_exposure = t / m_image->getAverageLuminance();
+			m_exposure = t / m_image->getLogAverageLuminance();
 			textBox->setValue(t);
 		});
 
 		toolButton->setCallback([&, slider, textBox] {
-			m_exposure = 0.18f / m_image->getAverageLuminance();
+			m_exposure = 0.18f / m_image->getLogAverageLuminance();
 			slider->setValue(0.18f);
 		textBox->setValue(0.18f);
 		});
 	}
 	else if (index == 2) {
-		m_exposure = m_image->getAutoKeyValue() / m_image->getAverageLuminance();
+		m_exposure = m_image->getAutoKeyValue() / m_image->getLogAverageLuminance();
 	}
 
 	setTonemapMode(m_tonemapIndex);
