@@ -4,6 +4,7 @@
 #include <tonemap.h>
 
 #include <operators/clamping.h>
+#include <operators/exponential.h>
 #include <operators/exponentiation.h>
 #include <operators/linear.h>
 #include <operators/logarithmic.h>
@@ -11,6 +12,7 @@
 #include <operators/meanvalue.h>
 #include <operators/reinhard.h>
 #include <operators/reinhard_extended.h>
+#include <operators/schlick.h>
 #include <operators/srgb.h>
 #include <operators/ward.h>
 
@@ -24,10 +26,12 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new ReinhardOperator());
 	m_tonemapOperators.push_back(new ExtendedReinhardOperator());
 	m_tonemapOperators.push_back(new WardOperator());
+	m_tonemapOperators.push_back(new SchlickOperator());
 	m_tonemapOperators.push_back(new MaximumDivisionOperator());
 	m_tonemapOperators.push_back(new MeanValueOperator());
 	m_tonemapOperators.push_back(new ClampingOperator());
 	m_tonemapOperators.push_back(new LogarithmicOperator());
+	m_tonemapOperators.push_back(new ExponentialOperator());
 	m_tonemapOperators.push_back(new ExponentiationOperator());
 
 	auto ctx = nvgContext();
@@ -73,7 +77,6 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 		}
 	});
 
-	//setTonemapMode(0);
 	setExposureMode(0);
 
 	m_exposureSelection->setEnabled(false);
