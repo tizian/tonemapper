@@ -29,21 +29,22 @@ private:
 	std::vector<TonemapOperator *> m_tonemapOperators;
 	int m_tonemapIndex;
 
-	Image 				*m_image = nullptr;
+	Image 					*m_image = nullptr;
     
-	float 			 	 m_exposure = 1.f;
+	float 			 		m_exposure = 1.f;
 
-    nanogui::Window 	*m_window = nullptr;
-    nanogui::Label 		*m_tonemapLabel = nullptr;
-	nanogui::ComboBox 	*m_tonemapSelection = nullptr;
-	nanogui::Widget 	*m_tonemapWidget = nullptr;
-	nanogui::Label 		*m_exposureLabel = nullptr;
-	nanogui::ComboBox 	*m_exposureSelection = nullptr;
-	nanogui::Widget 	*m_exposureWidget = nullptr;
-	nanogui::Graph 		*m_graph = nullptr;
+	nanogui::Window			*m_window = nullptr;
+    nanogui::Label 			*m_tonemapLabel = nullptr;
+	nanogui::PopupButton 	*m_tonemapPopupButton = nullptr;
+	nanogui::Popup			*m_popup = nullptr;
+	nanogui::Widget 		*m_tonemapWidget = nullptr;
+	nanogui::Label 			*m_exposureLabel = nullptr;
+	nanogui::ComboBox 		*m_exposureSelection = nullptr;
+	nanogui::Widget 		*m_exposureWidget = nullptr;
+	nanogui::Graph 			*m_graph = nullptr;
 
-	const int 			 MAIN_WIDTH = 960;
-	Eigen::Vector2i 	 m_windowSize;
-	Eigen::Vector2i 	 m_scaledImageSize;
-	uint32_t 			 m_texture = 0;
+	const int 				MAIN_WIDTH = 960;
+	Eigen::Vector2i 		m_windowSize;
+	Eigen::Vector2i 		m_scaledImageSize;
+	uint32_t 				m_texture = 0;
 };

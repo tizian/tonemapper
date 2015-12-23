@@ -34,6 +34,10 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new ExponentialOperator());
 	m_tonemapOperators.push_back(new ExponentiationOperator());
 
+	for (size_t i = 0; i < m_tonemapOperators.size(); ++i) {
+		m_tonemapOperators[i]->index = i;
+	}
+
 	auto ctx = nvgContext();
 
 	glfwSetWindowPos(glfwWindow(), 20, 40);
@@ -81,7 +85,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 
 	m_exposureSelection->setEnabled(false);
 	setEnabledRecursive(m_exposureWidget, false);
-	m_tonemapSelection->setEnabled(false);
+	m_tonemapPopupButton->setEnabled(false);
 	setEnabledRecursive(m_tonemapWidget, false);
 
 	performLayout(mNVGContext);
@@ -112,7 +116,7 @@ void TonemapperScreen::setImage(const std::string &filename) {
 
 		m_exposureSelection->setEnabled(false);
 		setEnabledRecursive(m_exposureWidget, false);
-		m_tonemapSelection->setEnabled(false);
+		m_tonemapPopupButton->setEnabled(false);
 		setEnabledRecursive(m_tonemapWidget, false);
 
 		return;
@@ -124,7 +128,7 @@ void TonemapperScreen::setImage(const std::string &filename) {
 
 	m_exposureSelection->setEnabled(true);
 	setEnabledRecursive(m_exposureWidget, true);
-	m_tonemapSelection->setEnabled(true);
+	m_tonemapPopupButton->setEnabled(true);
 	setEnabledRecursive(m_tonemapWidget, true);
 
 	m_window->setPosition(Vector2i(15, 15));
@@ -166,39 +170,47 @@ void TonemapperScreen::setTonemapMode(int index) {
 
 	m_tonemapLabel = new Label(m_window, "Tonemapping operator", "sans-bold");
 
-	if (m_tonemapSelection) {
-		m_window->removeChild(m_tonemapSelection);
+	if (m_tonemapPopupButton) {
+		m_window->removeChild(m_tonemapPopupButton);
 	}
 
-	std::vector<std::string> tonemapperNames = std::vector<std::string>();
-	for (auto tm : m_tonemapOperators) {
-		tonemapperNames.push_back(tm->name);
+	m_tonemapPopupButton = new PopupButton(m_window);
+	m_popup = m_tonemapPopupButton->popup();
+	m_popup->setWidth(220);
+	auto scroll = new VScrollPanel(m_popup);
+	scroll->setLayout(new BoxLayout(Orientation::Vertical));
+	auto panel = new Widget(scroll);
+	
+	panel->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
+	int newIndex = 0;
+	for (auto tm: m_tonemapOperators) {
+		auto *button = new Button(panel, tm->name);
+		button->setFlags(Button::RadioButton);
+		button->setCallback([&, newIndex] {
+			m_popup->setVisible(false);
+			setTonemapMode(newIndex);
+		});
+		newIndex++;
 	}
-
-	m_tonemapSelection = new ComboBox(m_window, tonemapperNames);
-	m_tonemapSelection->setCallback([&](int index) {
-		setTonemapMode(index);
-	});
-	m_tonemapSelection->setSelectedIndex(m_tonemapIndex);
+	m_tonemapPopupButton->setCaption(m_tonemapOperators[m_tonemapIndex]->name);
 
 	if (m_tonemapWidget) {
 		m_window->removeChild(m_tonemapWidget);
 	}
 
 	m_tonemapWidget = new Widget(m_window);
-	m_tonemapWidget->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
+	m_tonemapWidget->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 8));
 
 	for (auto &parameter : m_tonemapOperators[m_tonemapIndex]->parameters) {
 		auto &p = parameter.second;
 		if (p.constant) continue;
 
-		new Label(m_tonemapWidget, parameter.first, "sans-bold");
-
 		auto *panel = new Widget(m_tonemapWidget);
 		panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
 
-		auto toolButton = new ToolButton(panel, ENTYPO_ICON_CYCLE);
-		toolButton->setFlags(Button::NormalButton);
+		auto button = new Button(panel, parameter.first);
+		button->setFixedSize(Vector2i(50, 22));
+		button->setFontSize(15);
 
 		auto *slider = new Slider(panel);
 		slider->setValue(inverseLerp(p.value, p.minValue, p.maxValue));
@@ -206,6 +218,7 @@ void TonemapperScreen::setTonemapMode(int index) {
 		auto textBox = new FloatBox<float>(panel);
 		textBox->setFixedSize(Vector2i(50, 22));
 		textBox->numberFormat("%.2f");
+		textBox->setFontSize(15);
 		textBox->setValue(p.value);
 		textBox->setAlignment(TextBox::Alignment::Right);
 		textBox->setEditable(true);
@@ -222,7 +235,7 @@ void TonemapperScreen::setTonemapMode(int index) {
 			refreshGraph();
 		});
 
-		toolButton->setCallback([&, slider, textBox] {
+		button->setCallback([&, slider, textBox] {
 			p.value = p.defaultValue;
 			slider->setValue(inverseLerp(p.value, p.minValue, p.maxValue));
 			textBox->setValue(p.defaultValue);
@@ -248,7 +261,7 @@ void TonemapperScreen::setExposureMode(int index) {
 		m_window->removeChild(m_exposureSelection);
 	}
 
-	m_exposureSelection = new ComboBox(m_window, { "Manual", "Key value", "Auto" });
+	m_exposureSelection = new ComboBox(m_window, { "log2 Exposure", "Key value Exposure", "Auto Exposure" });
 	m_exposureSelection->setCallback([&](int index) {
 		setExposureMode(index);
 	});
@@ -261,29 +274,25 @@ void TonemapperScreen::setExposureMode(int index) {
 	m_exposureWidget = new Widget(m_window);
 	m_exposureWidget->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
 
-	if (index == 0) {
-		new Label(m_exposureWidget, "log2 Exposure", "sans-bold");
-	}
-	else if (index == 1) {
-		new Label(m_exposureWidget, "Alpha", "sans-bold");
-	}
-
 	auto *panel = new Widget(m_exposureWidget);
 	panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
-
-	ToolButton *toolButton;
+	
+	Button *button;
 	Slider *slider;
 	FloatBox<float> *textBox;
 
 	if (index == 0 || index == 1) {
-		toolButton = new ToolButton(panel, ENTYPO_ICON_CYCLE);
-		toolButton->setFlags(Button::NormalButton);
+
+		button = new Button(panel, "alpha");
+		button->setFixedSize(Vector2i(50, 22));
+		button->setFontSize(15);
 
 		slider = new Slider(panel);
 
 		textBox = new FloatBox<float>(panel);
 		textBox->setFixedSize(Vector2i(50, 22));
 		textBox->numberFormat("%.1f");
+		textBox->setFontSize(15);
 		textBox->setAlignment(TextBox::Alignment::Right);
 		textBox->setEditable(true);
 	}
@@ -304,7 +313,7 @@ void TonemapperScreen::setExposureMode(int index) {
 			textBox->setValue(tmp);
 		});
 
-		toolButton->setCallback([&, slider, textBox] {
+		button->setCallback([&, slider, textBox] {
 			m_exposure = 1.f;
 			slider->setValue(0.5f);
 			textBox->setValue(0.f);
@@ -325,7 +334,7 @@ void TonemapperScreen::setExposureMode(int index) {
 			textBox->setValue(t);
 		});
 
-		toolButton->setCallback([&, slider, textBox] {
+		button->setCallback([&, slider, textBox] {
 			m_exposure = 0.18f / m_image->getLogAverageLuminance();
 			slider->setValue(0.18f);
 		textBox->setValue(0.18f);

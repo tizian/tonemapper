@@ -44,4 +44,5 @@ public:
 	ParameterMap parameters;
 	nanogui::GLShader *shader = nullptr;
 	std::string name;
+	int index;
 };
