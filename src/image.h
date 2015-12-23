@@ -15,6 +15,7 @@ public:
     const Color3f &ref(int i, int j) const;
     Color3f &ref(int i, int j);
 
+    inline float getMinimumLuminance() const { return m_minimumLuminance; }
     inline float getMaximumLuminance() const { return m_maximumLuminance; }
     inline float getAverageLuminance() const { return m_averageLuminance; }
     inline float getLogAverageLuminance() const { return m_logAverageLuminance; }
@@ -31,6 +32,7 @@ private:
 
     Eigen::Vector2i m_size;
 
+    float m_minimumLuminance;
     float m_maximumLuminance;
     float m_averageLuminance;
     float m_logAverageLuminance;

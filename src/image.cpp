@@ -89,7 +89,8 @@ Image::Image(const std::string &filename) {
 	float delta = 1e-4f;
 	m_averageLuminance = 0.f;
 	m_logAverageLuminance = 0.f;
-	m_maximumLuminance = -1.f;
+	m_minimumLuminance = std::numeric_limits<float>::max();
+	m_maximumLuminance = std::numeric_limits<float>::min();
 
 	for (int i = 0; i < m_size.y(); ++i) {
 		for (int j = 0; j < m_size.x(); ++j) {
@@ -97,6 +98,7 @@ Image::Image(const std::string &filename) {
 			m_averageLuminance += lum;
 			m_logAverageLuminance += std::log(delta + lum);
 			if (lum > m_maximumLuminance) m_maximumLuminance = lum;
+			if (lum < m_minimumLuminance) m_minimumLuminance = lum;
 		}
 	}
 

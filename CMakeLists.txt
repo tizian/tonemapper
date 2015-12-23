@@ -33,20 +33,6 @@ include_directories(
 )
 
 add_executable(tonemapper
-	src/global.h
-	src/color.h
-	src/image.h
-	src/gui.h
-
-	src/tonemap.h
-	src/operators/linear.h
-	src/operators/maxdivision.h
-	src/operators/meanvalue.h
-	src/operators/reinhard.h
-	src/operators/reinhard_extended.h
-	src/operators/srgb.h
-	src/operators/ward.h
-
 	src/image.cpp
 	src/gui.cpp
 	src/main.cpp
