@@ -14,6 +14,7 @@
 #include <operators/reinhard_extended.h>
 #include <operators/schlick.h>
 #include <operators/srgb.h>
+#include <operators/tumblin_rushmeier.h>
 #include <operators/ward.h>
 
 TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600), "Tone Mapper", true, false) {
@@ -27,16 +28,13 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new ExtendedReinhardOperator());
 	m_tonemapOperators.push_back(new WardOperator());
 	m_tonemapOperators.push_back(new SchlickOperator());
+	m_tonemapOperators.push_back(new TumblinRushmeierOperator());
 	m_tonemapOperators.push_back(new MaximumDivisionOperator());
 	m_tonemapOperators.push_back(new MeanValueOperator());
 	m_tonemapOperators.push_back(new ClampingOperator());
 	m_tonemapOperators.push_back(new LogarithmicOperator());
 	m_tonemapOperators.push_back(new ExponentialOperator());
 	m_tonemapOperators.push_back(new ExponentiationOperator());
-
-	for (size_t i = 0; i < m_tonemapOperators.size(); ++i) {
-		m_tonemapOperators[i]->index = i;
-	}
 
 	auto ctx = nvgContext();
 
