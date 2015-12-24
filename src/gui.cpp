@@ -6,6 +6,7 @@
 #include <operators/clamping.h>
 #include <operators/exponential.h>
 #include <operators/exponentiation.h>
+#include <operators/ferwerda.h>
 #include <operators/linear.h>
 #include <operators/logarithmic.h>
 #include <operators/maxdivision.h>
@@ -27,6 +28,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new ReinhardOperator());
 	m_tonemapOperators.push_back(new ExtendedReinhardOperator());
 	m_tonemapOperators.push_back(new WardOperator());
+	m_tonemapOperators.push_back(new FerwerdaOperator());
 	m_tonemapOperators.push_back(new SchlickOperator());
 	m_tonemapOperators.push_back(new TumblinRushmeierOperator());
 	m_tonemapOperators.push_back(new MaximumDivisionOperator());
@@ -74,8 +76,27 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	saveBtn->setIcon(ENTYPO_ICON_SAVE);
 	saveBtn->setCallback([&] {
 		std::string filename = file_dialog({ { "png", "Portable Network Graphics" } }, true);
-		if (m_image) {
-			m_image->saveAsPNG(filename, m_tonemapOperators[m_tonemapIndex], m_exposure);
+		cout << (filename == "") << endl;
+		if (m_image && filename != "") {
+			m_saveWindow = new Window(this, "Saving tonemapped image..");
+			m_saveWindow->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Middle, 10, 10));
+			m_saveWindow->setModal(true);
+			m_saveWindow->setFixedWidth(300);
+			m_saveWindow->setVisible(true);
+
+			auto panel = new Widget(m_saveWindow);
+			panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 10, 15));
+
+			m_saveWindow->center();
+			m_saveWindow->requestFocus();
+			m_progressBar = new ProgressBar(panel);
+			m_progressBar->setFixedWidth(200);
+
+			performLayout(nvgContext());
+
+			m_saveThread = new std::thread([&, filename]{
+				m_image->saveAsPNG(filename, m_tonemapOperators[m_tonemapIndex], m_exposure, &m_progress);
+			});
 		}
 	});
 
@@ -424,6 +445,23 @@ void TonemapperScreen::drawContents() {
 		height = (GLsizei) mFBSize[1];
 		glViewport(x, y, width, height);
 	}
+}
+
+void TonemapperScreen::draw(NVGcontext *ctx) {
+
+	if (m_progressBar) {
+		m_progressBar->setValue(m_progress);
+
+		if (m_progress < 0.f) {
+			m_saveThread->join();
+			delete m_saveThread;
+			m_progressBar = nullptr;
+			m_saveWindow->dispose();
+		}
+	}
+	
+	
+	Screen::draw(ctx);
 }
 
 void TonemapperScreen::setEnabledRecursive(nanogui::Widget *widget, bool enabled) {

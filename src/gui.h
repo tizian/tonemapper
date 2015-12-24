@@ -2,6 +2,8 @@
 
 #include <global.h>
 
+#include <thread>
+
 #include <nanogui/glutil.h>
 #include <nanogui/nanogui.h>
 
@@ -22,6 +24,7 @@ public:
 	virtual bool keyboardEvent(int key, int scancode, int action, int modifiers) override;
 	virtual bool dropEvent(const std::vector<std::string> & filenames) override;
 	virtual void drawContents() override;
+	virtual void draw(NVGcontext *ctx) override;
 
 private:
 	void setEnabledRecursive(nanogui::Widget *widget, bool enabled);
@@ -33,6 +36,11 @@ private:
     
 	float 			 		m_exposure = 1.f;
 
+	std::thread				*m_saveThread = nullptr;
+	float					m_progress = 0.f;
+	
+	nanogui::Window			*m_saveWindow = nullptr;
+	nanogui::ProgressBar	*m_progressBar = nullptr;
 	nanogui::Window			*m_window = nullptr;
     nanogui::Label 			*m_tonemapLabel = nullptr;
 	nanogui::PopupButton 	*m_tonemapPopupButton = nullptr;

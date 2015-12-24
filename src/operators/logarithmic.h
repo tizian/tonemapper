@@ -36,7 +36,7 @@ public:
 			"}\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = log(1 + p * color) / log(1 + q * exposure * maxLum);\n"
+			"	 color = (log(1 + p * color)/log(10.0)) / (log(1 + q * exposure * maxLum)/log(10.0));\n"
 			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
 			"}"
 		);
@@ -48,7 +48,7 @@ public:
 		float p = parameters.at("p").value;
 		float q = parameters.at("q").value;
 		value *= exposure;
-		value = std::log(1.f + p * value) / std::log(1.f + q * exposure * maxLum);
+		value = std::log10(1.f + p * value) / std::log10(1.f + q * exposure * maxLum);
 		return std::pow(value, 1.f/gamma);
 	}
 
