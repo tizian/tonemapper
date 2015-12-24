@@ -125,9 +125,10 @@ void Image::saveAsPNG(const std::string &filename, TonemapOperator *tonemap, flo
 	for (int i = 0; i < m_size.y(); ++i) {
 		for (int j = 0; j < m_size.x(); ++j) {
 			const Color3f &c = ref(i, j);
-			dst[0] = convert(tonemap->correct(c.r(), exposure));
-			dst[1] = convert(tonemap->correct(c.g(), exposure));
-			dst[2] = convert(tonemap->correct(c.b(), exposure));
+			Color3f out = tonemap->map(c, exposure);
+			dst[0] = convert(out.r());
+			dst[1] = convert(out.g());
+			dst[2] = convert(out.b());
 			dst += 3;
 			*progress += delta;
 		}

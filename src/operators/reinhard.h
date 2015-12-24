@@ -26,21 +26,31 @@ public:
 			"uniform float gamma;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
-			"float correct(float value) {\n"
-			"    return pow(value, 1/gamma);\n"
+			"\n"
+			"vec4 clampedValue(vec4 color) {\n"
+			"	 color.a = 1.0;\n"
+			"	 return clamp(color, 0.0, 1.0);\n"
 			"}\n"
+			"\n"
+			"vec4 gammaCorrect(vec4 color) {\n"
+			"	 return pow(color, vec4(1.0/gamma));\n"
+			"}\n"
+			"\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = color / (1 + color);\n"
-			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
+			"	 color = color / (1.0 + color);\n"
+			"	 color = gammaCorrect(color);\n"
+			"    out_color = clampedValue(color);\n"
 			"}"
 		);
 	}
 
-	virtual float correct(float value, float exposure) const override {
+protected:
+	virtual float map(float value, float exposure) const override {
 		float gamma = parameters.at("Gamma").value;
+		
 		value *= exposure;
 		value = value / (1.f + value);
-		return std::pow(value, 1.f/gamma);
+		return gammaCorrect(value, gamma);
 	}
 };

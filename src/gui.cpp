@@ -63,20 +63,19 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 
 	new Label(m_window, "Image I/O", "sans-bold");
 
-	auto *openBtn = new Button(m_window, "Open HDR image");
-	openBtn->setBackgroundColor(nanogui::Color(0, 255, 0, 25));
-	openBtn->setIcon(ENTYPO_ICON_FOLDER);
-	openBtn->setCallback([&] {
+	auto *openButton = new Button(m_window, "Open HDR image");
+	openButton->setBackgroundColor(nanogui::Color(0, 255, 0, 25));
+	openButton->setIcon(ENTYPO_ICON_FOLDER);
+	openButton->setCallback([&] {
 		std::string filename = file_dialog({ {"exr", "OpenEXR"} }, false);
 		setImage(filename);
 	});
 
-	auto *saveBtn = new Button(m_window, "Save LDR image");
-	saveBtn->setBackgroundColor(nanogui::Color(0, 255, 0, 25));
-	saveBtn->setIcon(ENTYPO_ICON_SAVE);
-	saveBtn->setCallback([&] {
+	m_saveButton = new Button(m_window, "Save LDR image");
+	m_saveButton->setBackgroundColor(nanogui::Color(0, 255, 0, 25));
+	m_saveButton->setIcon(ENTYPO_ICON_SAVE);
+	m_saveButton->setCallback([&] {
 		std::string filename = file_dialog({ { "png", "Portable Network Graphics" } }, true);
-		cout << (filename == "") << endl;
 		if (m_image && filename != "") {
 			m_saveWindow = new Window(this, "Saving tonemapped image..");
 			m_saveWindow->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Middle, 10, 10));
@@ -102,6 +101,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 
 	setExposureMode(0);
 
+	m_saveButton->setEnabled(false);
 	m_exposureSelection->setEnabled(false);
 	setEnabledRecursive(m_exposureWidget, false);
 	m_tonemapPopupButton->setEnabled(false);
@@ -133,6 +133,7 @@ void TonemapperScreen::setImage(const std::string &filename) {
 		delete m_image;
 		m_image = nullptr;
 
+		m_saveButton->setEnabled(false);
 		m_exposureSelection->setEnabled(false);
 		setEnabledRecursive(m_exposureWidget, false);
 		m_tonemapPopupButton->setEnabled(false);
@@ -145,6 +146,7 @@ void TonemapperScreen::setImage(const std::string &filename) {
 		tm->setParameters(m_image);
 	}
 
+	m_saveButton->setEnabled(true);
 	m_exposureSelection->setEnabled(true);
 	setEnabledRecursive(m_exposureWidget, true);
 	m_tonemapPopupButton->setEnabled(true);
@@ -224,17 +226,17 @@ void TonemapperScreen::setTonemapMode(int index) {
 		auto &p = parameter.second;
 		if (p.constant) continue;
 
-		auto *panel = new Widget(m_tonemapWidget);
-		panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
+		auto *windowPanel = new Widget(m_tonemapWidget);
+		windowPanel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
 
-		auto button = new Button(panel, parameter.first);
+		auto button = new Button(windowPanel, parameter.first);
 		button->setFixedSize(Vector2i(50, 22));
 		button->setFontSize(15);
 
-		auto *slider = new Slider(panel);
+		auto *slider = new Slider(windowPanel);
 		slider->setValue(inverseLerp(p.value, p.minValue, p.maxValue));
 
-		auto textBox = new FloatBox<float>(panel);
+		auto textBox = new FloatBox<float>(windowPanel);
 		textBox->setFixedSize(Vector2i(50, 22));
 		textBox->numberFormat("%.2f");
 		textBox->setFontSize(15);
@@ -381,9 +383,8 @@ void TonemapperScreen::refreshGraph() {
 	func.resize(precision);
 	for (int i = 0; i < precision; ++i) {
 		float t = (float)i / precision;
-		float tmp = (t - 0.5f) * 10.f;
-		tmp = std::pow(2.f, tmp);
-		func[i] = clamp(m_tonemapOperators[m_tonemapIndex]->correct(tmp), 0.f, 1.f);
+		Color3f color(std::pow(2.f, (t - 0.5f) * 10.f));
+		func[i] = clamp(m_tonemapOperators[m_tonemapIndex]->map(color).getLuminance(), 0.f, 1.f);
 	}
 
 	performLayout(mNVGContext);

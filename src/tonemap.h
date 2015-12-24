@@ -24,6 +24,11 @@ class Image;
 
 class TonemapOperator {
 public:
+	std::string 		name;
+	ParameterMap 		parameters;
+	nanogui::GLShader  *shader = nullptr;
+	
+
 	TonemapOperator() {
 		parameters = ParameterMap();
 		shader = new nanogui::GLShader();
@@ -33,7 +38,9 @@ public:
 		delete shader;
 	}
 
-	virtual float correct(float value, float exposure = 1.f) const = 0;
+	virtual Color3f map(const Color3f &color, float exposure = 1.f) const {
+		return Color3f(map(color.r(), exposure), map(color.g(), exposure), map(color.b(), exposure));
+	}
 
 	virtual void setParameters(const Image *image) {}
 
@@ -41,7 +48,8 @@ public:
 		return name;
 	}
 
-	ParameterMap parameters;
-	nanogui::GLShader *shader = nullptr;
-	std::string name;
+protected:
+	virtual float map(float value, float exposure = 1.f) const { 
+		return exposure * value;
+	}
 };

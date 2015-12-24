@@ -23,19 +23,28 @@ public:
 			"uniform float exposure;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
-			"float correct(float value) {\n"
+			"\n"
+			"float toSRGB(float value) {\n"
 			"	 if (value < 0.0031308)\n"
 			"	 	 return 12.92 * value;\n"
 			"    return 1.055 * pow(value, 0.41666) - 0.055;\n"
 			"}\n"
+			"\n"
+			"vec4 clampedValue(vec4 color) {\n"
+			"	 color.a = 1.0;\n"
+			"	 return clamp(color, 0.0, 1.0);\n"
+			"}\n"
+			"\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
+			"    color = vec4(toSRGB(color.r), toSRGB(color.g), toSRGB(color.b), 1.0);\n"
+			"    out_color = clampedValue(color);\n"
 			"}"
 		);
 	}
 
-	virtual float correct(float value, float exposure) const override {
+protected:
+	virtual float map(float value, float exposure) const override {
 		value *= exposure;
 		if (value < 0.0031308f) {
 			return 12.92f * value;

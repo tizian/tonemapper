@@ -27,26 +27,36 @@ public:
 			"uniform float avgLum;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
-			"float correct(float value) {\n"
-			"    return pow(value, 1/gamma);\n"
+			"\n"
+			"vec4 clampedValue(vec4 color) {\n"
+			"	 color.a = 1.0;\n"
+			"	 return clamp(color, 0.0, 1.0);\n"
 			"}\n"
+			"\n"
+			"vec4 gammaCorrect(vec4 color) {\n"
+			"	 return pow(color, vec4(1.0/gamma));\n"
+			"}\n"
+			"\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
 			"	 color = 0.5 * color / (exposure * avgLum);\n"
-			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
+			"	 color = gammaCorrect(color);\n"
+			"    out_color = clampedValue(color);\n"
 			"}"
 		);
-	}
-
-	virtual float correct(float value, float exposure) const override {
-		float gamma = parameters.at("Gamma").value;
-		float avgLum = parameters.at("avgLum").value;
-		value *= exposure;
-		value = 0.5f * value / (exposure * avgLum);
-		return std::pow(value, 1.f/gamma);
 	}
 
 	virtual void setParameters(const Image *image) {
 		parameters["avgLum"] = Parameter(image->getAverageLuminance(), "avgLum");
 	};
+
+protected:
+	virtual float map(float value, float exposure) const override {
+		float gamma = parameters.at("Gamma").value;
+		float avgLum = parameters.at("avgLum").value;
+
+		value *= exposure;
+		value = 0.5f * value / (exposure * avgLum);
+		return gammaCorrect(value, gamma);
+	}
 };

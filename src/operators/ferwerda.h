@@ -43,6 +43,29 @@ public:
 		);
 	}
 
+	virtual void setParameters(const Image *image) {
+		parameters["Lwa"] = Parameter(image->getLogAverageLuminance(), "Lwa");
+	};
+
+protected:
+	virtual float map(float value, float exposure) const override {
+		float gamma = parameters.at("Gamma").value;
+		float Lwa = parameters.at("Lwa").value;
+		float maxLd = parameters.at("max Ld").value;
+		float Lda = maxLd / 2.f;
+		value *= exposure;
+
+		float Ldp = tp(Lda) / tp(exposure * Lwa) * value;
+		float Lds = ts(Lda) / ts(exposure * Lwa) * value;
+
+		float k = parameters.at("k").value;
+		value = Ldp + k * Lds;
+
+		value = value / maxLd;
+		
+		return std::pow(value, 1.f/gamma);
+	}
+
 	inline float tp(float La) const {
 		float logLa = std::log10(La);
 		float result;
@@ -72,26 +95,4 @@ public:
 		}
 		return std::pow(result, 10.f);
 	}
-
-	virtual float correct(float value, float exposure) const override {
-		float gamma = parameters.at("Gamma").value;
-		float Lwa = parameters.at("Lwa").value;
-		float maxLd = parameters.at("max Ld").value;
-		float Lda = maxLd / 2.f;
-		value *= exposure;
-
-		float Ldp = tp(Lda) / tp(exposure * Lwa) * value;
-		float Lds = ts(Lda) / ts(exposure * Lwa) * value;
-
-		float k = parameters.at("k").value;
-		value = Ldp + k * Lds;
-
-		value = value / maxLd;
-		
-		return std::pow(value, 1.f/gamma);
-	}
-
-	virtual void setParameters(const Image *image) {
-		parameters["Lwa"] = Parameter(image->getLogAverageLuminance(), "Lwa");
-	};
 };

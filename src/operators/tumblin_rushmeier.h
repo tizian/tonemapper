@@ -32,9 +32,16 @@ public:
 			"uniform float maxC;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
-			"float correct(float value) {\n"
-			"    return pow(value, 1/gamma);\n"
+			"\n"
+			"vec4 clampedValue(vec4 color) {\n"
+			"	 color.a = 1.0;\n"
+			"	 return clamp(color, 0.0, 1.0);\n"
 			"}\n"
+			"\n"
+			"vec4 gammaCorrect(vec4 color) {\n"
+			"	 return pow(color, vec4(1.0/gamma));\n"
+			"}\n"
+			"\n"
 			"void main() {\n"
 			"	 float log10Lrw = log(exposure * avgL)/log(10.0);\n"
 			"	 float alpha_rw = 0.4 * log10Lrw + 2.92;\n"
@@ -42,16 +49,22 @@ public:
 			"	 float log10Ld = log(maxLd / sqrt(maxC))/log(10.0);\n"
 			"	 float alpha_d = 0.4 * log10Ld + 2.92;\n"
 			"	 float beta_d = -0.4 * log10Ld*log10Ld - 2.584 * log10Ld + 2.0208;\n"
+			"\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = pow(color, vec4(alpha_rw/alpha_d)) / maxLd * pow(10, (beta_rw - beta_d) / alpha_d) - (1 / maxC);\n"
-			"    out_color = vec4(correct(color.r), correct(color.g), correct(color.b), 1);\n"
+			"	 color = pow(color, vec4(alpha_rw/alpha_d)) / maxLd * pow(10.0, (beta_rw - beta_d) / alpha_d) - (1 / maxC);\n"
+			"	 color = gammaCorrect(color);\n"
+			"    out_color = clampedValue(color);\n"
 			"}"
 		);
 	}
 
-	virtual float correct(float value, float exposure) const override {
+	virtual void setParameters(const Image *image) {
+		parameters["avgL"] = Parameter(image->getAverageLuminance(), "avgL");
+	};
+
+protected:
+	virtual float map(float value, float exposure) const override {
 		float gamma = parameters.at("Gamma").value;
-		value *= exposure;
 
 		float avgL = parameters.at("avgL").value;
 		float log10Lrw = std::log10(exposure * avgL);
@@ -64,12 +77,9 @@ public:
 		float alpha_d = 0.4f * log10Ld + 2.92f;
 		float beta_d = -0.4f * log10Ld*log10Ld - 2.584f * log10Ld + 2.0208f;
 
-		value = std::pow(value, alpha_rw/alpha_d) / maxLd * std::pow(10, (beta_rw - beta_d) / alpha_d) - (1.f / maxC);
-		
-		return std::pow(value, 1.f/gamma);
-	}
 
-	virtual void setParameters(const Image *image) {
-		parameters["avgL"] = Parameter(image->getAverageLuminance(), "avgL");
-	};
+		value *= exposure;
+		value = std::pow(value, alpha_rw/alpha_d) / maxLd * std::pow(10.f, (beta_rw - beta_d) / alpha_d) - (1.f / maxC);
+		return gammaCorrect(value, gamma);
+	}
 };

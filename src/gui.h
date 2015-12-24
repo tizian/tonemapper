@@ -39,6 +39,7 @@ private:
 	std::thread				*m_saveThread = nullptr;
 	float					m_progress = 0.f;
 	
+	nanogui::Button			*m_saveButton = nullptr;
 	nanogui::Window			*m_saveWindow = nullptr;
 	nanogui::ProgressBar	*m_progressBar = nullptr;
 	nanogui::Window			*m_window = nullptr;
