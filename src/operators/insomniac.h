@@ -67,7 +67,7 @@ public:
 		);
 	}
 
-	virtual void setParameters(const Image *image) {
+	virtual void setParameters(const Image *image) override {
 		parameters["Lavg"] = Parameter(image->getAverageLuminance(), "Lavg");
 	};
 

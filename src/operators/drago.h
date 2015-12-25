@@ -65,7 +65,7 @@ public:
 		);
 	}
 
-	virtual void setParameters(const Image *image) {
+	virtual void setParameters(const Image *image) override {
 		parameters["Lwa"] = Parameter(image->getLogAverageLuminance(), "Lwa");
 		parameters["Lwmax"] = Parameter(image->getMaximumLuminance(), "Lwmax");
 	};

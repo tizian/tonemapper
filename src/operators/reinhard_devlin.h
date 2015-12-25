@@ -74,7 +74,7 @@ public:
 		);
 	}
 
-	virtual void setParameters(const Image *image) {
+	virtual void setParameters(const Image *image) override {
 		float Lmax = image->getMaximumLuminance();
 		float Lav = image->getAverageLuminance();
 		float Lmin = image->getMinimumLuminance();
@@ -90,7 +90,7 @@ public:
 		parameters["Lav"] = Parameter(image->getAverageLuminance(), "Lav");
 	};
 
-	virtual Color3f map(const Color3f &color, float exposure = 1.f) const {
+	virtual Color3f map(const Color3f &color, float exposure = 1.f) const override {
 		float gamma = parameters.at("Gamma").value;
 		float m = parameters.at("m").value;
 		float f = parameters.at("f").value;

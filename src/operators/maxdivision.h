@@ -46,7 +46,7 @@ public:
 		);
 	}
 
-	virtual void setParameters(const Image *image) {
+	virtual void setParameters(const Image *image) override {
 		parameters["maxLum"] = Parameter(image->getMaximumLuminance(), "maxLum");
 	};
 

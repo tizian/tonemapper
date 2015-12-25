@@ -12,6 +12,7 @@
 #include <map>
 #include <cassert>
 #include <memory>
+#include <cmath>
 
 using std::cout;
 using std::cerr;

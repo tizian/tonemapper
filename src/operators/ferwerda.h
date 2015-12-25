@@ -93,11 +93,11 @@ public:
 		);
 	}
 
-	virtual void setParameters(const Image *image) {
+	virtual void setParameters(const Image *image) override {
 		parameters["Lwa"] = Parameter(image->getMaximumLuminance() / 2.f, "Lwa");
 	};
 
-	virtual Color3f map(const Color3f &color, float exposure = 1.f) const {
+	virtual Color3f map(const Color3f &color, float exposure = 1.f) const override {
 		float gamma = parameters.at("Gamma").value;
 		float Lwa = parameters.at("Lwa").value;
 		float maxLd = parameters.at("max Ld").value;

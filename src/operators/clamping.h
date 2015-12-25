@@ -46,7 +46,7 @@ public:
 		);
 	}
 
-	virtual void setParameters(const Image *image) {
+	virtual void setParameters(const Image *image) override {
 		float min = image->getMinimumLuminance();
 		float max = image->getMaximumLuminance();
 		float start = 0.5f * (min + max);
