@@ -4,6 +4,7 @@
 #include <tonemap.h>
 
 #include <operators/clamping.h>
+#include <operators/drago.h>
 #include <operators/exponential.h>
 #include <operators/exponentiation.h>
 #include <operators/ferwerda.h>
@@ -31,6 +32,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new FerwerdaOperator());
 	m_tonemapOperators.push_back(new SchlickOperator());
 	m_tonemapOperators.push_back(new TumblinRushmeierOperator());
+	m_tonemapOperators.push_back(new DragoOperator());
 	m_tonemapOperators.push_back(new MaximumDivisionOperator());
 	m_tonemapOperators.push_back(new MeanValueOperator());
 	m_tonemapOperators.push_back(new ClampingOperator());

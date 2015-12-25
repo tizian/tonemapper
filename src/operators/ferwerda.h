@@ -84,9 +84,8 @@ public:
 			"	 float mS = ts(Lda) / ts(exposure * Lwa);\n"
 			"	 float k = (1.0 - (Lwa/2.0 - 0.01)/(10.0-0.01));\n"
 			"	 k = clamp(k * k, 0.0, 1.0);\n"
-			"	 vec4 colorAdjust = vec4(1.05, 0.97, 1.27, 1.0);\n"
 			"	 float sw = s(color);\n"
-			"	 color = mP * color + colorAdjust * k * mS * sw;\n"
+			"	 color = mP * color + k * mS * sw;\n"
 			"	 color = color / maxLd;\n"
 			"	 color = gammaCorrect(color);\n"
 			"    out_color = clampedValue(color);\n"
@@ -113,10 +112,9 @@ public:
 		float k = (1.f - (Lwa/2.f - 0.01f) / (10.f - 0.01f));
 		k = clamp(k * k, 0.f, 1.f);
 
-		Color3f colorAdjust(1.05f, 0.97f, 1.27f);
 		float sw = s(c);
 
-		c = mP * c + colorAdjust * k * mS * sw;
+		c = mP * c + k * mS * Color3f(sw);
 		c = c / maxLd;
 
 		return Color3f(gammaCorrect(c.r(), gamma), gammaCorrect(c.g(), gamma), gammaCorrect(c.b(), gamma));

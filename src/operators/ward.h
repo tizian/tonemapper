@@ -41,9 +41,10 @@ public:
 			"\n"
 			"void main() {\n"
 			"	 float Lda = maxLd / 2.0;\n"
-			"	 float m = pow((1.219 + pow(Lda, 0.4)) / (1.219 + pow(Lwa * exposure, 0.4)), 2.5) / maxLd;\n"
+			"	 float m = pow((1.219 + pow(Lda, 0.4)) / (1.219 + pow(Lwa * exposure, 0.4)), 2.5);\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
 			"	 color = m * color;\n"
+			"	 color = color / maxLd;\n"
 			"	 color = gammaCorrect(color);\n"
 			"    out_color = clampedValue(color);\n"
 			"}"
@@ -60,10 +61,11 @@ protected:
 		float Lwa = parameters.at("Lwa").value;
 		float maxLd = parameters.at("max Ld").value;
 		float Lda = maxLd / 2.f;
-		float m = std::pow((1.219f + std::pow(Lda, 0.4f)) / (1.219f + std::pow(Lwa * exposure, 0.4f)), 2.5f) / maxLd;
+		float m = std::pow((1.219f + std::pow(Lda, 0.4f)) / (1.219f + std::pow(Lwa * exposure, 0.4f)), 2.5f);
 
 		value *= exposure;
 		value = m * value;
+		value = value / maxLd;
 		return gammaCorrect(value, gamma);
 	}
 };
