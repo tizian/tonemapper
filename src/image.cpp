@@ -91,9 +91,11 @@ Image::Image(const std::string &filename) {
 	m_logAverageLuminance = 0.f;
 	m_minimumLuminance = std::numeric_limits<float>::max();
 	m_maximumLuminance = std::numeric_limits<float>::min();
+	m_averageIntensity = Color3f(0.f);
 
 	for (int i = 0; i < m_size.y(); ++i) {
 		for (int j = 0; j < m_size.x(); ++j) {
+			m_averageIntensity += ref(i, j);
 			float lum = ref(i, j).getLuminance();
 			m_averageLuminance += lum;
 			m_logAverageLuminance += std::log(delta + lum);
@@ -102,6 +104,7 @@ Image::Image(const std::string &filename) {
 		}
 	}
 
+	m_averageIntensity = m_averageIntensity / (m_size.x() * m_size.y());
 	m_averageLuminance = m_averageLuminance / (m_size.x() * m_size.y());
 	m_logAverageLuminance = std::exp(m_logAverageLuminance / (m_size.x() * m_size.y()));
 

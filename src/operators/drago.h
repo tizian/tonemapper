@@ -93,7 +93,7 @@ protected:
 			return slope * value;
 		}
 		else {
-			return std::pow(1.099f * value, 0.9f / gamma) - 0.099;
+			return std::pow(1.099f * value, 0.9f / gamma) - 0.099f;
 		}
 	}
 };

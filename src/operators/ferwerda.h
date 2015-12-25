@@ -104,7 +104,6 @@ public:
 		float Lda = maxLd / 2.f;
 
 		Color3f c = exposure * color;
-		float Lw = c.getLuminance();
 
 		float mP = tp(Lda) / tp(exposure * Lwa);
 		float mS = ts(Lda) / ts(exposure * Lwa);
