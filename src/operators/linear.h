@@ -5,9 +5,10 @@
 class LinearOperator : public TonemapOperator {
 public:
 	LinearOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
 
 		name = "Linear";
+		description = "Linear Mapping\n\nGamma correction only.";
 
 		shader->init(
 			"Linear",

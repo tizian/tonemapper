@@ -5,10 +5,10 @@
 class ExtendedReinhardOperator : public TonemapOperator {
 public:
 	ExtendedReinhardOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
-		parameters["white L"] = Parameter(1.f, 0.f, 5.f, "whiteL");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
 
 		name = "Reinhard (Extended)";
+		description = "Extended Reinhard Mapping\n\nProposed in \"Photographic Tone Reproduction for Digital Images\" by Reinhard et al. 2002.\n(Extension that allows high luminances to burn out.)";
 
 		shader->init(
 			"ExtendedReinhard",
@@ -25,7 +25,7 @@ public:
 			"uniform sampler2D source;\n"
 			"uniform float exposure;\n"
 			"uniform float gamma;\n"
-			"uniform float whiteL;\n"
+			"uniform float Lwhite;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
 			"\n"
@@ -40,20 +40,27 @@ public:
 			"\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = (color * (1.0 + color / (whiteL * whiteL))) / (1.0 + color);\n"
+			"	 color = (color * (1.0 + color / (Lwhite * Lwhite))) / (1.0 + color);\n"
 			"	 color = gammaCorrect(color);\n"
 			"    out_color = clampedValue(color);\n"
 			"}"
 		);
 	}
 
+	virtual void setParameters(const Image *image) override {
+		float Lmin = image->getMinimumLuminance();
+		float Lmax = image->getMaximumLuminance();
+
+		parameters["Lwhite"] = Parameter(Lmax, Lmin, Lmax, "Lwhite", "Smallest luminance that will be mapped to pure white.");
+	};
+
 protected:
 	virtual float map(float value, float exposure) const override {
 		float gamma = parameters.at("Gamma").value;
-		float whiteL = parameters.at("white L").value;
+		float Lwhite = parameters.at("Lwhite").value;
 		
 		value *= exposure;
-		value = (value * (1.f + value / (whiteL * whiteL))) / (1.f + value);
+		value = (value * (1.f + value / (Lwhite * Lwhite))) / (1.f + value);
 		return gammaCorrect(value, gamma);
 	}
 };

@@ -5,9 +5,10 @@
 class ReinhardOperator : public TonemapOperator {
 public:
 	ReinhardOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
 
 		name = "Reinhard";
+		description = "Reinhard Mapping\n\nProposed in \"Photographic Tone Reproduction for Digital Images\" by Reinhard et al. 2002.\n(Simple operator)";
 
 		shader->init(
 			"Reinhard",

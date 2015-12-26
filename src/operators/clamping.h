@@ -5,10 +5,11 @@
 class ClampingOperator : public TonemapOperator {
 public:
 	ClampingOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
 
 		name = "Clamping";
-
+		description = "Clamping\n\nUser defined maximum value that maps to 1.\nDiscussed in \"Quantization Techniques for Visualization of High Dynamic Range Pictures\" by Schlick 1994.";
+		
 		shader->init(
 			"Clamping",
 
@@ -51,7 +52,7 @@ public:
 		float max = image->getMaximumLuminance();
 		float start = 0.5f * (min + max);
 
-		parameters["p"] = Parameter(start, min, max, "p");
+		parameters["p"] = Parameter(start, min, max, "p", "Minimal value that is mapped to 1.");
 	};
 
 protected:

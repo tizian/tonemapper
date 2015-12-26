@@ -5,9 +5,10 @@
 class MeanValueOperator : public TonemapOperator {
 public:
 	MeanValueOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
 
 		name = "Mean Value Mapping";
+		description = "Mean Value Mapping\n\nMean value is mapped to 0.5.";
 
 		shader->init(
 			"MeanValue",
@@ -24,7 +25,7 @@ public:
 			"uniform sampler2D source;\n"
 			"uniform float exposure;\n"
 			"uniform float gamma;\n"
-			"uniform float avgLum;\n"
+			"uniform float Lavg;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
 			"\n"
@@ -39,7 +40,7 @@ public:
 			"\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = 0.5 * color / (exposure * avgLum);\n"
+			"	 color = 0.5 * color / (exposure * Lavg);\n"
 			"	 color = gammaCorrect(color);\n"
 			"    out_color = clampedValue(color);\n"
 			"}"
@@ -47,16 +48,16 @@ public:
 	}
 
 	virtual void setParameters(const Image *image) override {
-		parameters["avgLum"] = Parameter(image->getAverageLuminance(), "avgLum");
+		parameters["Lavg"] = Parameter(image->getAverageLuminance(), "Lavg");
 	};
 
 protected:
 	virtual float map(float value, float exposure) const override {
 		float gamma = parameters.at("Gamma").value;
-		float avgLum = parameters.at("avgLum").value;
+		float Lavg = parameters.at("Lavg").value;
 
 		value *= exposure;
-		value = 0.5f * value / (exposure * avgLum);
+		value = 0.5f * value / (exposure * Lavg);
 		return gammaCorrect(value, gamma);
 	}
 };

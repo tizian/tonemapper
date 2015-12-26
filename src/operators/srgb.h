@@ -6,6 +6,7 @@ class SRGBOperator : public TonemapOperator {
 public:
 	SRGBOperator() : TonemapOperator() {
 		name = "sRGB";
+		description = "sRGB\n\nConversion to the sRGB color space.";
 
 		shader->init(
 			"sRGB",

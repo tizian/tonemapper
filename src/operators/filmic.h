@@ -6,6 +6,7 @@ class FilmicOperator : public TonemapOperator {
 public:
 	FilmicOperator() : TonemapOperator() {
 		name = "Filmic";
+		description = "Filmic Mapping\n\nBy Haarm-Pieter Duiker, Jim Hejl and Richard Burgess-Dawson.";
 
 		shader->init(
 			"Filmic",

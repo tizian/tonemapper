@@ -5,16 +5,17 @@
 class Uncharted2Operator : public TonemapOperator {
 public:
 	Uncharted2Operator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
-		parameters["A"] = Parameter(0.22f, 0.f, 1.f, "A");
-		parameters["B"] = Parameter(0.3f, 0.f, 1.f, "B");
-		parameters["C"] = Parameter(0.1f, 0.f, 1.f, "C");
-		parameters["D"] = Parameter(0.2f, 0.f, 1.f, "D");
-		parameters["E"] = Parameter(0.01f, 0.f, 1.f, "E");
-		parameters["F"] = Parameter(0.3f, 0.f, 1.f, "F");
-		parameters["W"] = Parameter(11.2f, 0.f, 20.f, "W");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
+		parameters["A"] = Parameter(0.22f, 0.f, 1.f, "A", "Shoulder strength curve parameter");
+		parameters["B"] = Parameter(0.3f, 0.f, 1.f, "B", "Linear strength curve parameter");
+		parameters["C"] = Parameter(0.1f, 0.f, 1.f, "C", "Linear angle curve parameter");
+		parameters["D"] = Parameter(0.2f, 0.f, 1.f, "D", "Toe strength curve parameter");
+		parameters["E"] = Parameter(0.01f, 0.f, 1.f, "E", "Toe numerator curve parameter");
+		parameters["F"] = Parameter(0.3f, 0.f, 1.f, "F", "Toe denominator curve parameter");
+		parameters["W"] = Parameter(11.2f, 0.f, 20.f, "W", "White point\nMinimal value that is mapped to 1.");
 
 		name = "Uncharted 2 (Hable)";
+		description = "Uncharted 2 Mapping\n\nBy John Hable.";
 
 		shader->init(
 			"Uncharted2",

@@ -5,10 +5,11 @@
 class FerwerdaOperator : public TonemapOperator {
 public:
 	FerwerdaOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
-		parameters["max Ld"] = Parameter(80.f, 0.f, 160.f, "maxLd");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
+		parameters["Ldmax"] = Parameter(80.f, 0.f, 160.f, "Ldmax", "Maximum luminance capability of the display (cd/m^2)");
 
 		name = "Ferwerda";
+		description = "Ferwerda Mapping\n\nProposed in \"A Model of Visual Adaptation for Realistic Image Synthesis\" by Ferwerda et al. 1996.";
 
 		shader->init(
 			"Ferwerda",
@@ -26,7 +27,7 @@ public:
 			"uniform float exposure;\n"
 			"uniform float gamma;\n"
 			"uniform float Lwa;\n"
-			"uniform float maxLd;\n"
+			"uniform float Ldmax;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
 			"\n"
@@ -78,7 +79,7 @@ public:
 			"}\n"
 			"\n"
 			"void main() {\n"
-			"	 float Lda = maxLd / 2.0;\n"
+			"	 float Lda = Ldmax / 2.0;\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
 			"	 float mP = tp(Lda) / tp(exposure * Lwa);\n"
 			"	 float mS = ts(Lda) / ts(exposure * Lwa);\n"
@@ -86,7 +87,7 @@ public:
 			"	 k = clamp(k * k, 0.0, 1.0);\n"
 			"	 float sw = s(color);\n"
 			"	 color = mP * color + k * mS * sw;\n"
-			"	 color = color / maxLd;\n"
+			"	 color = color / Ldmax;\n"
 			"	 color = gammaCorrect(color);\n"
 			"    out_color = clampedValue(color);\n"
 			"}"
@@ -100,8 +101,8 @@ public:
 	virtual Color3f map(const Color3f &color, float exposure = 1.f) const override {
 		float gamma = parameters.at("Gamma").value;
 		float Lwa = parameters.at("Lwa").value;
-		float maxLd = parameters.at("max Ld").value;
-		float Lda = maxLd / 2.f;
+		float Ldmax = parameters.at("Ldmax").value;
+		float Lda = Ldmax / 2.f;
 
 		Color3f c = exposure * color;
 
@@ -114,7 +115,7 @@ public:
 		float sw = s(c);
 
 		c = mP * c + k * mS * Color3f(sw);
-		c = c / maxLd;
+		c = c / Ldmax;
 
 		return Color3f(gammaCorrect(c.r(), gamma), gammaCorrect(c.g(), gamma), gammaCorrect(c.b(), gamma));
 	}

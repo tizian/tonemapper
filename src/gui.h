@@ -31,6 +31,7 @@ private:
 
 	std::vector<TonemapOperator *> m_tonemapOperators;
 	int m_tonemapIndex;
+	int m_exposureIndex;
 
 	Image 					*m_image = nullptr;
     
@@ -45,10 +46,11 @@ private:
 	nanogui::Window			*m_window = nullptr;
     nanogui::Label 			*m_tonemapLabel = nullptr;
 	nanogui::PopupButton 	*m_tonemapPopupButton = nullptr;
-	nanogui::Popup			*m_popup = nullptr;
+	nanogui::Popup			*m_tonemapPopup = nullptr;
 	nanogui::Widget 		*m_tonemapWidget = nullptr;
 	nanogui::Label 			*m_exposureLabel = nullptr;
-	nanogui::ComboBox 		*m_exposureSelection = nullptr;
+	nanogui::PopupButton 	*m_exposurePopupButton = nullptr;
+	nanogui::Popup			*m_exposurePopup = nullptr;
 	nanogui::Widget 		*m_exposureWidget = nullptr;
 	nanogui::Graph 			*m_graph = nullptr;
 

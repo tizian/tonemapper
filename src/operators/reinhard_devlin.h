@@ -5,13 +5,14 @@
 class ReinhardDevlinOperator : public TonemapOperator {
 public:
 	ReinhardDevlinOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
-		parameters["m"] = Parameter(0.5f, 0.f, 1.f, "m");
-		parameters["f"] = Parameter(1.f, 0.f, 1000.f, "f");
-		parameters["c"] = Parameter(0.f, 0.f, 1.f, "c");
-		parameters["a"] = Parameter(1.f, 0.f, 1.f, "a");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
+		parameters["m"] = Parameter(0.5f, 0.f, 1.f, "m", "Compression curve adjustment parameter");
+		parameters["f"] = Parameter(1.f, 0.f, 1000.f, "f", "Intensity adjustment parameter");
+		parameters["c"] = Parameter(0.f, 0.f, 1.f, "c", "Chromatic adaptation\nBlend between color channels and luminance.");
+		parameters["a"] = Parameter(1.f, 0.f, 1.f, "a", "Light adaptation\nBlend between pixel intensity and average scene intensity.");
 
 		name = "Reinhard-Devlin";
+		description = "Reinhard-Devlin Mapping\n\nPropsed in \"Dynamic Range Reduction Inspired by Photoreceptor Physiology\" by Reinhard and Devlin 2005.";
 
 		shader->init(
 			"ReinhardDevlin",
@@ -77,8 +78,9 @@ public:
 	virtual void setParameters(const Image *image) override {
 		float Lmax = image->getMaximumLuminance();
 		float Lav = image->getAverageLuminance();
+		float Llav = image->getAverageLuminance();
 		float Lmin = image->getMinimumLuminance();
-		float k = (Lmax - Lav) / (Lmax - Lmin);
+		float k = (std::log(Lmax) - std::log(Llav)) / (std::log(Lmax) - std::log(Lmin));
 		float m = 0.3f + 0.7f * std::pow(k, 1.4f);
 		parameters.at("m").defaultValue = m;
 		parameters.at("m").value = m;
@@ -87,7 +89,7 @@ public:
 		parameters["Iav_g"] = Parameter(image->getAverageIntensity().r(), "Iav_g");
 		parameters["Iav_b"] = Parameter(image->getAverageIntensity().r(), "Iav_b");
 
-		parameters["Lav"] = Parameter(image->getAverageLuminance(), "Lav");
+		parameters["Lav"] = Parameter(Lav, "Lav");
 	};
 
 	virtual Color3f map(const Color3f &color, float exposure = 1.f) const override {

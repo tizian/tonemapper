@@ -5,14 +5,15 @@
 class InsomniacOperator : public TonemapOperator {
 public:
 	InsomniacOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
-		parameters["w"] = Parameter(10.f, 0.f, 20.f, "w");
-		parameters["b"] = Parameter(0.1f, 0.f, 2.f, "b");
-		parameters["t"] = Parameter(0.7f, 0.f, 1.f, "t");
-		parameters["s"] = Parameter(0.8f, 0.f, 1.f, "s");
-		parameters["c"] = Parameter(2.f, 0.f, 10.f, "c");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
+		parameters["w"] = Parameter(10.f, 0.f, 20.f, "w", "White point\nMinimal value that is mapped to 1.");
+		parameters["b"] = Parameter(0.1f, 0.f, 2.f, "b", "Black point\nMaximal value that is mapped to 0.");
+		parameters["t"] = Parameter(0.7f, 0.f, 1.f, "t", "Toe strength\nAmount of blending between a straight-line curve and a purely asymptotic curve for the toe.");
+		parameters["s"] = Parameter(0.8f, 0.f, 1.f, "s", "Shoulder strength\nAmount of blending between a straight-line curve and a purely asymptotic curve for the shoulder.");
+		parameters["c"] = Parameter(2.f, 0.f, 10.f, "c", "Cross-over point\nPoint where the toe and shoulder are pieced together into a single curve.");
 
 		name = "Insomniac (Day)";
+		description = "Insomniac Mapping\n\nBy Mike Day (Insomniac Games).";
 
 		shader->init(
 			"Insomniac",

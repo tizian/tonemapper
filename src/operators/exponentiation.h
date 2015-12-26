@@ -5,10 +5,11 @@
 class ExponentiationOperator : public TonemapOperator {
 public:
 	ExponentiationOperator() : TonemapOperator() {
-		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma");
-		parameters["p"] = Parameter(0.5f, 0.f, 1.f, "p");
+		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
+		parameters["p"] = Parameter(0.5f, 0.f, 1.f, "p", "Curve exponent parameter");
 
 		name = "Exponentiation";
+		description = "Exponentiation Mapping\n\nDiscussed in \"Quantization Techniques for Visualization of High Dynamic Range Pictures\" by Schlick 1994.";
 
 		shader->init(
 			"Exponentiation",
@@ -25,7 +26,7 @@ public:
 			"uniform sampler2D source;\n"
 			"uniform float exposure;\n"
 			"uniform float gamma;\n"
-			"uniform float maxLum;\n"
+			"uniform float Lmax;\n"
 			"uniform float p;\n"
 			"in vec2 uv;\n"
 			"out vec4 out_color;\n"
@@ -41,7 +42,7 @@ public:
 			"\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = color / (exposure * maxLum);\n"
+			"	 color = color / (exposure * Lmax);\n"
 			"	 color = gammaCorrectPlus(color);\n"
 			"    out_color = clampedValue(color);\n"
 			"}"
@@ -49,17 +50,17 @@ public:
 	}
 
 	virtual void setParameters(const Image *image) override {
-		parameters["maxLum"] = Parameter(image->getMaximumLuminance(), "maxLum");
+		parameters["Lmax"] = Parameter(image->getMaximumLuminance(), "Lmax");
 	};
 
 protected:
 	virtual float map(float value, float exposure) const override {
 		float gamma = parameters.at("Gamma").value;
-		float maxLum = parameters.at("maxLum").value;
+		float Lmax = parameters.at("Lmax").value;
 		float p = parameters.at("p").value;
 
 		value *= exposure;
-		value = value / (exposure * maxLum);
+		value = value / (exposure * Lmax);
 		return gammaCorrect(value, gamma/p);
 	}
 };

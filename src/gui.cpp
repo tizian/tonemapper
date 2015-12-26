@@ -48,6 +48,8 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new ExponentialOperator());
 	m_tonemapOperators.push_back(new ExponentiationOperator());
 
+	m_exposureIndex = 0;
+
 	auto ctx = nvgContext();
 
 	glfwSetWindowPos(glfwWindow(), 20, 40);
@@ -59,12 +61,12 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	layout->setGroupIndent(14);
 
 	m_window = new Window(this, "Tone Mapper");
-	m_window->setPosition(Vector2i(15, 15));
+	m_window->setPosition(Vector2i(25, 15));
 	m_window->setLayout(layout);
 
 	auto about = new Button(m_window->buttonPanel(), "", ENTYPO_ICON_INFO);
 	about->setCallback([&, ctx] {
-		auto dlg = new MessageDialog(this, MessageDialog::Type::Information, "About Tone Mapper", "Info and description.\n\n(c) 2015 Tizian Zeltner");
+		auto dlg = new MessageDialog(this, MessageDialog::Type::Information, "Tone Mapper", "Copyright (c) 2015 Tizian Zeltner\nAll right reserved.");
 		dlg->messageLabel()->setFixedWidth(300);
 		dlg->messageLabel()->setFontSize(20);
 		performLayout(ctx);
@@ -76,14 +78,18 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	auto *openButton = new Button(m_window, "Open HDR image");
 	openButton->setBackgroundColor(nanogui::Color(0, 255, 0, 25));
 	openButton->setIcon(ENTYPO_ICON_FOLDER);
+	openButton->setTooltip("Open .exr HDR image");
 	openButton->setCallback([&] {
 		std::string filename = file_dialog({ {"exr", "OpenEXR"} }, false);
-		setImage(filename);
+		if (filename != "") {
+			setImage(filename);
+		}
 	});
 
 	m_saveButton = new Button(m_window, "Save LDR image");
 	m_saveButton->setBackgroundColor(nanogui::Color(0, 255, 0, 25));
 	m_saveButton->setIcon(ENTYPO_ICON_SAVE);
+	m_saveButton->setTooltip("Save .png LDR image");
 	m_saveButton->setCallback([&] {
 		std::string filename = file_dialog({ { "png", "Portable Network Graphics" } }, true);
 		if (m_image && filename != "") {
@@ -112,7 +118,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	setExposureMode(0);
 
 	m_saveButton->setEnabled(false);
-	m_exposureSelection->setEnabled(false);
+	m_exposurePopupButton->setEnabled(false);
 	setEnabledRecursive(m_exposureWidget, false);
 	m_tonemapPopupButton->setEnabled(false);
 	setEnabledRecursive(m_tonemapWidget, false);
@@ -144,7 +150,7 @@ void TonemapperScreen::setImage(const std::string &filename) {
 		m_image = nullptr;
 
 		m_saveButton->setEnabled(false);
-		m_exposureSelection->setEnabled(false);
+		m_exposurePopupButton->setEnabled(false);
 		setEnabledRecursive(m_exposureWidget, false);
 		m_tonemapPopupButton->setEnabled(false);
 		setEnabledRecursive(m_tonemapWidget, false);
@@ -157,12 +163,12 @@ void TonemapperScreen::setImage(const std::string &filename) {
 	}
 
 	m_saveButton->setEnabled(true);
-	m_exposureSelection->setEnabled(true);
+	m_exposurePopupButton->setEnabled(true);
 	setEnabledRecursive(m_exposureWidget, true);
 	m_tonemapPopupButton->setEnabled(true);
 	setEnabledRecursive(m_tonemapWidget, true);
 
-	m_window->setPosition(Vector2i(15, 15));
+	m_window->setPosition(Vector2i(25, 15));
 
 	m_scaledImageSize = Vector2i(MAIN_WIDTH, (MAIN_WIDTH * m_image->getHeight()) / m_image->getWidth());
 	m_windowSize = Vector2i(m_scaledImageSize.x(), m_scaledImageSize.y());
@@ -206,19 +212,21 @@ void TonemapperScreen::setTonemapMode(int index) {
 	}
 
 	m_tonemapPopupButton = new PopupButton(m_window);
-	m_popup = m_tonemapPopupButton->popup();
-	m_popup->setWidth(220);
-	auto scroll = new VScrollPanel(m_popup);
+	m_tonemapPopupButton->setTooltip(m_tonemapOperators[m_tonemapIndex]->description);
+	m_tonemapPopup = m_tonemapPopupButton->popup();
+	m_tonemapPopup->setWidth(220);
+	auto scroll = new VScrollPanel(m_tonemapPopup);
 	scroll->setLayout(new BoxLayout(Orientation::Vertical));
-	auto panel = new Widget(scroll);
+	auto popopPanel = new Widget(scroll);
 	
-	panel->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
+	popopPanel->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
 	int newIndex = 0;
 	for (auto tm: m_tonemapOperators) {
-		auto *button = new Button(panel, tm->name);
+		auto button = new Button(popopPanel, tm->name);
+		button->setTooltip(tm->description);
 		button->setFlags(Button::RadioButton);
 		button->setCallback([&, newIndex] {
-			m_popup->setVisible(false);
+			m_tonemapPopup->setVisible(false);
 			setTonemapMode(newIndex);
 		});
 		newIndex++;
@@ -242,6 +250,7 @@ void TonemapperScreen::setTonemapMode(int index) {
 		auto button = new Button(windowPanel, parameter.first);
 		button->setFixedSize(Vector2i(50, 22));
 		button->setFontSize(15);
+		button->setTooltip(p.description);
 
 		auto *slider = new Slider(windowPanel);
 		slider->setValue(inverseLerp(p.value, p.minValue, p.maxValue));
@@ -282,21 +291,48 @@ void TonemapperScreen::setTonemapMode(int index) {
 void TonemapperScreen::setExposureMode(int index) {
 	using namespace nanogui;
 
+	m_exposureIndex = index;
+
 	if (m_exposureLabel) {
 		m_window->removeChild(m_exposureLabel);
 	}
 
 	m_exposureLabel = new Label(m_window, "Exposure mode", "sans-bold");
 
-	if (m_exposureSelection) {
-		m_window->removeChild(m_exposureSelection);
+	if (m_exposurePopupButton) {
+		m_window->removeChild(m_exposurePopupButton);
 	}
 
-	m_exposureSelection = new ComboBox(m_window, { "log2 Exposure", "Key value Exposure", "Auto Exposure" });
-	m_exposureSelection->setCallback([&](int index) {
-		setExposureMode(index);
-	});
-	m_exposureSelection->setSelectedIndex(index);
+	std::vector<std::string> exposureNames{"Manual", "Key Value", "Auto"};
+	std::vector<std::string> exposureDescriptions{
+		"Manual Mode\n\nAdjust exposure with an exponential scale factor.",
+		"Key Value mode\n\nAdjust exposure with a key value as described in \"Photographic Tone Reproduction for Digital Images\" by Reinhard et al. 2002.",
+		"Auto mode\n\nAuto adjust exposure with a key value proposed by \"Perceptual Effects in Real-time Tone Mapping\" by Krawczyk et al. 2005."
+	};
+
+	m_exposurePopupButton = new PopupButton(m_window);
+	m_exposurePopupButton->setTooltip(exposureNames[m_exposureIndex]);
+	m_exposurePopup = m_exposurePopupButton->popup();
+	m_exposurePopup->setWidth(130);
+	m_exposurePopup->setHeight(130);
+	auto tmp = new Widget(m_exposurePopup);
+	tmp->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Minimum));
+	auto popopPanel = new Widget(tmp);
+	
+	popopPanel->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
+	int newIndex = 0;
+	for (int i = 0; i < 3; ++i) {
+		auto button = new Button(popopPanel, exposureNames[i]);
+		 button->setTooltip(exposureDescriptions[i]);
+		button->setFlags(Button::RadioButton);
+		button->setCallback([&, newIndex] {
+			m_exposurePopup->setVisible(false);
+			setExposureMode(newIndex);
+		});
+		newIndex++;
+	}
+	m_exposurePopupButton->setCaption(exposureNames[m_exposureIndex]);
+	m_exposurePopupButton->setTooltip(exposureDescriptions[m_exposureIndex]);
 
 	if (m_exposureWidget) {
 		m_window->removeChild(m_exposureWidget);
@@ -313,10 +349,16 @@ void TonemapperScreen::setExposureMode(int index) {
 	FloatBox<float> *textBox;
 
 	if (index == 0 || index == 1) {
-
 		button = new Button(panel, "alpha");
 		button->setFixedSize(Vector2i(50, 22));
 		button->setFontSize(15);
+
+		if (index == 0) {
+			button->setTooltip("Exponential scale factor 2^alpha");
+		}
+		else if (index == 1) {
+			button->setTooltip("Key value exposure adjustment parameter");
+		}
 
 		slider = new Slider(panel);
 

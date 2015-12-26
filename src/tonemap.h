@@ -9,13 +9,21 @@ struct Parameter {
 	float minValue;
 	float maxValue;
 	std::string uniform;
+	std::string description;
 	bool constant;
 
 	Parameter() {}
-	Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform)
-		: value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue), uniform(uniform), constant(false) {}
+	Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform, const std::string &description)
+		: value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue),
+		uniform(uniform), description(description), constant(false) {}
+	Parameter(float value, const std::string &uniform, const std::string &description)
+		: value(value), uniform(uniform), description(description), constant(true) {}
+
+		Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform)
+		: value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue),
+		uniform(uniform), description("blub"), constant(false) {}
 	Parameter(float value, const std::string &uniform)
-		: value(value), uniform(uniform), constant(true) {}
+		: value(value), uniform(uniform), description("blub"), constant(true) {}
 };
 
 typedef std::map<std::string, Parameter> ParameterMap;
@@ -25,6 +33,7 @@ class Image;
 class TonemapOperator {
 public:
 	std::string 		name;
+	std::string 		description;
 	ParameterMap 		parameters;
 	nanogui::GLShader  *shader = nullptr;
 	
@@ -32,6 +41,8 @@ public:
 	TonemapOperator() {
 		parameters = ParameterMap();
 		shader = new nanogui::GLShader();
+		description = "<no description>";
+		name = "<no name>";
 	}
 
 	virtual ~TonemapOperator() {
