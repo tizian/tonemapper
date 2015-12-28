@@ -56,17 +56,46 @@ public:
 		parameters["Lwa"] = Parameter(image->getLogAverageLuminance(), "Lwa");
 	};
 
-protected:
-	virtual float map(float value, float exposure) const override {
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
+
 		float gamma = parameters.at("Gamma").value;
 		float Lwa = parameters.at("Lwa").value;
 		float Ldmax = parameters.at("Ldmax").value;
+
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				float colorR = map(color.r(), exposure, gamma, Lwa, Ldmax);
+				float colorG = map(color.g(), exposure, gamma, Lwa, Ldmax);
+				float colorB = map(color.b(), exposure, gamma, Lwa, Ldmax);
+				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
+	}
+
+	float graph(float value) const override {
+		float gamma = parameters.at("Gamma").value;
+		float Lwa = parameters.at("Lwa").value;
+		float Ldmax = parameters.at("Ldmax").value;
+
+		return map(value, 1.f, gamma, Lwa, Ldmax);
+	}
+
+protected:
+	float map(float v, float exposure, float gamma, float Lwa, float Ldmax) const {
 		float Lda = Ldmax / 2.f;
 		float m = std::pow((1.219f + std::pow(Lda, 0.4f)) / (1.219f + std::pow(Lwa * exposure, 0.4f)), 2.5f);
 
-		value *= exposure;
+		float value = exposure * v;
 		value = m * value;
 		value = value / Ldmax;
-		return gammaCorrect(value, gamma);
+		return std::pow(value, 1.f / gamma);
 	}
 };

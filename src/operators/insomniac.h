@@ -72,8 +72,11 @@ public:
 		parameters["Lavg"] = Parameter(image->getAverageLuminance(), "Lavg");
 	};
 
-protected:
-	virtual float map(float value, float exposure) const override {
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
+
 		float gamma = parameters.at("Gamma").value;
 		float Lavg = parameters.at("Lavg").value;
 		float w = parameters.at("w").value;
@@ -82,20 +85,47 @@ protected:
 		float s = parameters.at("s").value;
 		float c = parameters.at("c").value;
 
-		value = value / Lavg;
-
-		float k = (1.f-t)*(c-b) / ((1.f-s)*(w-c) + (1.f-t)*(c-b));
-		value = tonemap(value, k, c, w, b, s, t);
-
-		return gammaCorrect(value, gamma);
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				float colorR = map(color.r(), exposure, gamma, Lavg, w, b, t, s, c);
+				float colorG = map(color.g(), exposure, gamma, Lavg, w, b, t, s, c);
+				float colorB = map(color.b(), exposure, gamma, Lavg, w, b, t, s, c);
+				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
 	}
 
-	float tonemap(float x, float k, float c, float w, float b, float s, float t) const {
-		if (x < c) {
-			return k * (1.f-t)*(x-b) / (c - (1.f-t)*b - t*x);
+	float graph(float value) const override {
+		float gamma = parameters.at("Gamma").value;
+		float Lavg = parameters.at("Lavg").value;
+		float w = parameters.at("w").value;
+		float b = parameters.at("b").value;
+		float t = parameters.at("t").value;
+		float s = parameters.at("s").value;
+		float c = parameters.at("c").value;
+
+		return map(value, 1.f, gamma, Lavg, w, b, t, s, c);
+	}
+
+protected:
+	float map(float v, float exposure, float gamma, float Lavg, float w, float b, float t, float s, float c) const {
+		float value = exposure * v;
+		value = value / (exposure * Lavg);
+
+		float k = (1.f-t)*(c-b) / ((1.f-s)*(w-c) + (1.f-t)*(c-b));
+
+		if (value < c) {
+			value = k * (1.f-t)*(value-b) / (c - (1.f-t)*b - t*value);
 		}
 		else {
-			return (1.f-k)*(x-c) / (s*x + (1.f-s)*w - c) + k;
+			value = (1.f-k)*(value-c) / (s*value + (1.f-s)*w - c) + k;
 		}
+
+		return std::pow(value, 1.f / gamma);
 	}
 };

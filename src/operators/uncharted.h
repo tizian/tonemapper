@@ -67,8 +67,11 @@ public:
 		);
 	}
 
-protected:
-	virtual float map(float value, float exposure) const override {
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
+
 		float gamma = parameters.at("Gamma").value;
 		float A = parameters.at("A").value;
 		float B = parameters.at("B").value;
@@ -77,17 +80,47 @@ protected:
 		float E = parameters.at("E").value;
 		float F = parameters.at("F").value;
 		float W = parameters.at("W").value;
-		float exposureBias = 2.f;
 
-		value *= exposure;
-		float curr = tonemap(exposureBias * value, A, B, C, D, E, F);
-		float whiteScale = 1.f / tonemap(W, A, B, C, D, E, F);
-		value = curr * whiteScale;
-
-		return gammaCorrect(value, gamma);
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				float colorR = map(color.r(), exposure, gamma, A, B, C, D, E, F, W);
+				float colorG = map(color.g(), exposure, gamma, A, B, C, D, E, F, W);
+				float colorB = map(color.b(), exposure, gamma, A, B, C, D, E, F, W);
+				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
 	}
 
-	float tonemap(float x, float A, float B, float C, float D, float E, float F) const {
+	float graph(float value) const override {
+		float gamma = parameters.at("Gamma").value;
+		float A = parameters.at("A").value;
+		float B = parameters.at("B").value;
+		float C = parameters.at("C").value;
+		float D = parameters.at("D").value;
+		float E = parameters.at("E").value;
+		float F = parameters.at("F").value;
+		float W = parameters.at("W").value;
+
+		return map(value, 1.f, gamma, A, B, C, D, E, F, W);
+	}
+
+protected:
+	float map(float v, float exposure, float gamma, float A, float B, float C, float D, float E, float F, float W) const {
+		float value = exposure * v;
+		float exposureBias = 2.f;
+		value = mapAux(exposureBias * value, A, B, C, D, E, F);
+		float whiteScale = 1.f / mapAux(W, A, B, C, D, E, F);
+		value = value * whiteScale;
+		return std::pow(value, 1.f / gamma);
+	}
+
+protected:
+	float mapAux(float x, float A, float B, float C, float D, float E, float F) const {
 		return ((x * (A*x + C*B) + D*E) / (x * (A*x+B) + D*F)) - E/F;
 	}
 };

@@ -46,12 +46,38 @@ public:
 		);
 	}
 
-protected:
-	virtual float map(float value, float exposure) const override {
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
+
 		float gamma = parameters.at("Gamma").value;
-		
-		value *= exposure;
+
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				float colorR = map(color.r(), exposure, gamma);
+				float colorG = map(color.g(), exposure, gamma);
+				float colorB = map(color.b(), exposure, gamma);
+				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
+	}
+
+	float graph(float value) const override {
+		float gamma = parameters.at("Gamma").value;
+
+		return map(value, 1.f, gamma);
+	}
+
+protected:
+	float map(float v, float exposure, float gamma) const {
+		float value = exposure * v;
 		value = value / (1.f + value);
-		return gammaCorrect(value, gamma);
+		return std::pow(value, 1.f / gamma);
 	}
 };

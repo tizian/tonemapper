@@ -92,30 +92,63 @@ public:
 		parameters["Lav"] = Parameter(Lav, "Lav");
 	};
 
-	virtual Color3f map(const Color3f &color, float exposure = 1.f) const override {
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
+
 		float gamma = parameters.at("Gamma").value;
 		float m = parameters.at("m").value;
 		float f = parameters.at("f").value;
 		float c = parameters.at("c").value;
 		float a = parameters.at("a").value;
-
 		float Iav_r = parameters.at("Iav_r").value;
 		float Iav_g = parameters.at("Iav_g").value;
 		float Iav_b = parameters.at("Iav_b").value;
-
 		float Lav = parameters.at("Lav").value;
 
-		Color3f colorP = exposure * color;
-		float L = colorP.getLuminance();
-		float sigmaIr = sigmaIa(colorP.r(), exposure * Iav_r, L, exposure * Lav, c, a, m, f);
-		float sigmaIg = sigmaIa(colorP.g(), exposure * Iav_g, L, exposure * Lav, c, a, m, f);
-		float sigmaIb = sigmaIa(colorP.b(), exposure * Iav_b, L, exposure * Lav, c, a, m, f);
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				Color3f out = map(color, exposure, gamma, m, f, c, a, Iav_r, Iav_g, Iav_b, Lav);
+				dst[0] = (uint8_t) clamp(255.f * out.r(), 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * out.g(), 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * out.b(), 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
+	}
 
-		colorP.r() = colorP.r() / (colorP.r() + sigmaIr);
-		colorP.g() = colorP.g() / (colorP.g() + sigmaIg);
-		colorP.b() = colorP.b() / (colorP.b() + sigmaIb);
+	float graph(float value) const override {
+		float gamma = parameters.at("Gamma").value;
+		float m = parameters.at("m").value;
+		float f = parameters.at("f").value;
+		float c = parameters.at("c").value;
+		float a = parameters.at("a").value;
+		float Iav_r = parameters.at("Iav_r").value;
+		float Iav_g = parameters.at("Iav_g").value;
+		float Iav_b = parameters.at("Iav_b").value;
+		float Lav = parameters.at("Lav").value;
 
-		return Color3f(gammaCorrect(colorP.r(), gamma), gammaCorrect(colorP.g(), gamma), gammaCorrect(colorP.b(), gamma));
+		return map(Color3f(value), 1.f, gamma, m, f, c, a, Iav_r, Iav_g, Iav_b, Lav).getLuminance();
+	}
+
+protected:
+	Color3f map(const Color3f &col, float exposure, float gamma, float m, float f, float c, float a, float Iav_r, float Iav_g, float Iav_b, float Lav) const {
+		Color3f color = exposure * col;
+		float L = color.getLuminance();
+		float sigmaIr = sigmaIa(color.r(), exposure * Iav_r, L, exposure * Lav, c, a, m, f);
+		float sigmaIg = sigmaIa(color.g(), exposure * Iav_g, L, exposure * Lav, c, a, m, f);
+		float sigmaIb = sigmaIa(color.b(), exposure * Iav_b, L, exposure * Lav, c, a, m, f);
+
+		color.r() = color.r() / (color.r() + sigmaIr);
+		color.g() = color.g() / (color.g() + sigmaIg);
+		color.b() = color.b() / (color.b() + sigmaIb);
+
+		return color.pow(1.f / gamma);
+
+		return Color3f(gammaCorrect(color.r(), gamma), gammaCorrect(color.g(), gamma), gammaCorrect(color.b(), gamma));
 	}
 
 	float sigmaIa(float Ia, float Iav_a, float L, float Lav, float c, float a, float m, float f) const {

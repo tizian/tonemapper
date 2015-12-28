@@ -13,6 +13,7 @@ struct Parameter {
 	bool constant;
 
 	Parameter() {}
+	
 	Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform, const std::string &description)
 		: value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue),
 		uniform(uniform), description(description), constant(false) {}
@@ -21,9 +22,9 @@ struct Parameter {
 
 		Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform)
 		: value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue),
-		uniform(uniform), description("blub"), constant(false) {}
+		uniform(uniform), description(""), constant(false) {}
 	Parameter(float value, const std::string &uniform)
-		: value(value), uniform(uniform), description("blub"), constant(true) {}
+		: value(value), uniform(uniform), description(""), constant(true) {}
 };
 
 typedef std::map<std::string, Parameter> ParameterMap;
@@ -37,7 +38,6 @@ public:
 	ParameterMap 		parameters;
 	nanogui::GLShader  *shader = nullptr;
 	
-
 	TonemapOperator() {
 		parameters = ParameterMap();
 		shader = new nanogui::GLShader();
@@ -49,18 +49,9 @@ public:
 		delete shader;
 	}
 
-	virtual Color3f map(const Color3f &color, float exposure = 1.f) const {
-		return Color3f(map(color.r(), exposure), map(color.g(), exposure), map(color.b(), exposure));
-	}
+	std::string getString() const { return name; }
 
 	virtual void setParameters(const Image *image) {}
-
-	virtual std::string getString() const {
-		return name;
-	}
-
-protected:
-	virtual float map(float value, float exposure = 1.f) const { 
-		return exposure * value;
-	}
+	virtual void process(const Image *image, uint8_t *dst, float exposure, float *progress) const {}
+	virtual float graph(float value) const { return 0.f; }
 };

@@ -46,12 +46,39 @@ public:
 		parameters["Lmax"] = Parameter(image->getMaximumLuminance(), "Lmax");
 	};
 
-protected:
-	virtual float map(float value, float exposure) const override {
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
+
 		float Lmax = parameters.at("Lmax").value;
 		float p = parameters.at("p").value;
 
-		value *= exposure;
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				float colorR = map(color.r(), exposure, Lmax, p);
+				float colorG = map(color.g(), exposure, Lmax, p);
+				float colorB = map(color.b(), exposure, Lmax, p);
+				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
+	}
+
+	float graph(float value) const override {
+		float Lmax = parameters.at("Lmax").value;
+		float p = parameters.at("p").value;
+
+		return map(value, 1.f, Lmax, p);
+	}
+
+protected:
+	float map(float v, float exposure, float Lmax, float p) const {
+		float value = exposure * v;
 		value = p * value / (p * value - value + exposure * Lmax);
 		return value;
 	}

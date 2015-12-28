@@ -98,29 +98,55 @@ public:
 		parameters["Lwa"] = Parameter(image->getMaximumLuminance() / 2.f, "Lwa");
 	};
 
-	virtual Color3f map(const Color3f &color, float exposure = 1.f) const override {
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
+
 		float gamma = parameters.at("Gamma").value;
 		float Lwa = parameters.at("Lwa").value;
 		float Ldmax = parameters.at("Ldmax").value;
-		float Lda = Ldmax / 2.f;
 
-		Color3f c = exposure * color;
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				Color3f out = map(color, exposure, gamma, Lwa, Ldmax);
+				dst[0] = (uint8_t) clamp(255.f * out.r(), 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * out.g(), 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * out.b(), 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
+	}
+
+	float graph(float value) const override {
+		float gamma = parameters.at("Gamma").value;
+		float Lwa = parameters.at("Lwa").value;
+		float Ldmax = parameters.at("Ldmax").value;
+
+		return map(Color3f(value), 1.f, gamma, Lwa, Ldmax).getLuminance();
+	}
+
+protected:
+	Color3f map(const Color3f &c, float exposure, float gamma, float Lwa, float Ldmax) const {
+		float Lda = Ldmax / 2.f;
+		Color3f color = exposure * c;
 
 		float mP = tp(Lda) / tp(exposure * Lwa);
 		float mS = ts(Lda) / ts(exposure * Lwa);
 
-		float k = (1.f - (Lwa/2.f - 0.01f) / (10.f - 0.01f));
+		float k = (1.f - (Lwa / 2.f - 0.01f) / (10.f - 0.01f));
 		k = clamp(k * k, 0.f, 1.f);
 
-		float sw = s(c);
+		float sw = s(color);
 
-		c = mP * c + k * mS * Color3f(sw);
-		c = c / Ldmax;
+		color = mP * color + k * mS * Color3f(sw);
+		color = color / Ldmax;
 
-		return Color3f(gammaCorrect(c.r(), gamma), gammaCorrect(c.g(), gamma), gammaCorrect(c.b(), gamma));
+		return color.pow(1.f / gamma);
 	}
 
-protected:
 	inline float s(const Color3f &color) const {
 		Color3f xyz;
 		xyz.r() = color.r() * 0.4124f + color.g() * 0.3576f + color.b() * 0.1805f;

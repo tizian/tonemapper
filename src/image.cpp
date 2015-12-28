@@ -122,20 +122,7 @@ void Image::saveAsPNG(const std::string &filename, TonemapOperator *tonemap, flo
 	uint8_t *rgb8 = new uint8_t[3 * m_size.x() * m_size.y()];
 	uint8_t *dst = rgb8;
 
-	*progress = 0.f;
-	float delta = 1.f / (m_size.x() * m_size.y());
-
-	for (int i = 0; i < m_size.y(); ++i) {
-		for (int j = 0; j < m_size.x(); ++j) {
-			const Color3f &c = ref(i, j);
-			Color3f out = tonemap->map(c, exposure);
-			dst[0] = convert(out.r());
-			dst[1] = convert(out.g());
-			dst[2] = convert(out.b());
-			dst += 3;
-			*progress += delta;
-		}
-	}
+	tonemap->process(this, dst, exposure, progress);
 
 	int ret = stbi_write_png(filename.c_str(), m_size.x(), m_size.y(), 3, rgb8, 3 * m_size.x());
 	if (ret == 0) {

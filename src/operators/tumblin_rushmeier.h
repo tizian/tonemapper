@@ -63,24 +63,51 @@ public:
 		parameters["Lavg"] = Parameter(image->getAverageLuminance(), "Lavg");
 	};
 
-protected:
-	virtual float map(float value, float exposure) const override {
-		float gamma = parameters.at("Gamma").value;
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
 
+		float gamma = parameters.at("Gamma").value;
 		float Lavg = parameters.at("Lavg").value;
+		float Ldmax = parameters.at("Ldmax").value;
+		float Cmax = parameters.at("Cmax").value;
+
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				float colorR = map(color.r(), exposure, gamma, Lavg, Ldmax, Cmax);
+				float colorG = map(color.g(), exposure, gamma, Lavg, Ldmax, Cmax);
+				float colorB = map(color.b(), exposure, gamma, Lavg, Ldmax, Cmax);
+				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
+	}
+
+	float graph(float value) const override {
+		float gamma = parameters.at("Gamma").value;
+		float Lavg = parameters.at("Lavg").value;
+		float Ldmax = parameters.at("Ldmax").value;
+		float Cmax = parameters.at("Cmax").value;
+
+		return map(value, 1.f, gamma, Lavg, Ldmax, Cmax);
+	}
+
+protected:
+	float map(float v, float exposure, float gamma, float Lavg, float Ldmax, float Cmax) const {
 		float log10Lrw = std::log10(exposure * Lavg);
 		float alpha_rw = 0.4f * log10Lrw + 2.92f;
 		float beta_rw = -0.4f * log10Lrw*log10Lrw - 2.584f * log10Lrw + 2.0208f;
-
-		float Ldmax = parameters.at("Ldmax").value;
-		float Cmax = parameters.at("Cmax").value;
 		float log10Ld = std::log10(Ldmax / std::sqrt(Cmax));
 		float alpha_d = 0.4f * log10Ld + 2.92f;
 		float beta_d = -0.4f * log10Ld*log10Ld - 2.584f * log10Ld + 2.0208f;
 
-
-		value *= exposure;
+		float value = exposure * v;
 		value = std::pow(value, alpha_rw/alpha_d) / Ldmax * std::pow(10.f, (beta_rw - beta_d) / alpha_d) - (1.f / Cmax);
-		return gammaCorrect(value, gamma);
+		return std::pow(value, 1.f / gamma);
 	}
 };

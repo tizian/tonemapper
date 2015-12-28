@@ -435,8 +435,8 @@ void TonemapperScreen::refreshGraph() {
 	func.resize(precision);
 	for (int i = 0; i < precision; ++i) {
 		float t = (float)i / precision;
-		Color3f color(std::pow(2.f, (t - 0.5f) * 10.f));
-		func[i] = clamp(m_tonemapOperators[m_tonemapIndex]->map(color).getLuminance(), 0.f, 1.f);
+		float v = std::pow(2.f, (t - 0.5f) * 10.f);
+		func[i] = clamp(m_tonemapOperators[m_tonemapIndex]->graph(v), 0.f, 1.f);
 	}
 
 	performLayout(mNVGContext);

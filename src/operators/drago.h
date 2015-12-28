@@ -71,8 +71,11 @@ public:
 		parameters["Lwmax"] = Parameter(image->getMaximumLuminance(), "Lwmax");
 	};
 
-protected:
-	virtual float map(float value, float exposure) const override {
+	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+		const nanogui::Vector2i &size = image->getSize();
+		*progress = 0.f;
+		float delta = 1.f / (size.x() * size.y());
+
 		float gamma = parameters.at("Gamma").value;
 		float Ldmax = parameters.at("Ldmax").value;
 		float Lwa = parameters.at("Lwa").value;
@@ -81,10 +84,39 @@ protected:
 		float start = parameters.at("start").value;
 		float slope = parameters.at("slope").value;
 
-		Lwa = exposure * Lwa / pow(1.f + b - 0.85f, 5.f);
-		Lwmax = exposure * Lwmax / Lwa;
-		value = exposure * value / Lwa;
+		for (int i = 0; i < size.y(); ++i) {
+			for (int j = 0; j < size.x(); ++j) {
+				const Color3f &color = image->ref(i, j);
+				float colorR = map(color.r(), exposure, gamma, Ldmax, Lwa, Lwmax, b, start, slope);
+				float colorG = map(color.g(), exposure, gamma, Ldmax, Lwa, Lwmax, b, start, slope);
+				float colorB = map(color.b(), exposure, gamma, Ldmax, Lwa, Lwmax, b, start, slope);
+				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
+				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
+				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				dst += 3;
+				*progress += delta;
+			}
+		}
+	}
 
+	float graph(float value) const override {
+		float gamma = parameters.at("Gamma").value;
+		float Ldmax = parameters.at("Ldmax").value;
+		float Lwa = parameters.at("Lwa").value;
+		float Lwmax = parameters.at("Lwmax").value;
+		float b = parameters.at("b").value;
+		float start = parameters.at("start").value;
+		float slope = parameters.at("slope").value;
+
+		return map(value, 1.f, gamma, Ldmax, Lwa, Lwmax, b, start, slope);
+	}
+
+protected:
+	float map(float v, float exposure, float gamma, float Ldmax, float Lwa, float Lwmax, float b, float start, float slope) const {
+		Lwa = exposure * Lwa / std::pow(1.f + b - 0.85f, 5.f);
+		Lwmax = exposure * Lwmax / Lwa;
+		float value = exposure * v / Lwa;
+		
 		float exponent = std::log(b) / std::log(0.5f);
 		float c1 = (0.01f * Ldmax) / std::log10(1.f + Lwmax);
 		float c2 = std::log(1.f + value) / std::log(2.f + 8.f * (std::pow(value / Lwmax, exponent)));
