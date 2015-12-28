@@ -6,7 +6,7 @@ class FilmicOperator : public TonemapOperator {
 public:
 	FilmicOperator() : TonemapOperator() {
 		name = "Filmic";
-		description = "Filmic Mapping\n\nBy Haarm-Pieter Duiker, Jim Hejl and Richard Burgess-Dawson.";
+		description = "Filmic Mapping\n\nBy Jim Hejl and Richard Burgess-Dawson from the \"Filmic Tonemapping for Real-time Rendering\" Siggraph 2010 Course by Haarm-Pieter Duiker.";
 
 		shader->init(
 			"Filmic",

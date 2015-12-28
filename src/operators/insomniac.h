@@ -13,7 +13,7 @@ public:
 		parameters["c"] = Parameter(2.f, 0.f, 10.f, "c", "Cross-over point\nPoint where the toe and shoulder are pieced together into a single curve.");
 
 		name = "Insomniac (Day)";
-		description = "Insomniac Mapping\n\nBy Mike Day (Insomniac Games).";
+		description = "Insomniac Mapping\n\nFrom \"An efficient and user-friendly tone mapping operator\" by Mike Day (Insomniac Games).";
 
 		shader->init(
 			"Insomniac",

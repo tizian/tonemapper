@@ -28,6 +28,8 @@ Available operators:
 * **Exponential**
 * **Exponentiation**
 
+<img src="res/screenshot.png" height="300">
+
 ## Running
 
 

@@ -15,7 +15,7 @@ public:
 		parameters["W"] = Parameter(11.2f, 0.f, 20.f, "W", "White point\nMinimal value that is mapped to 1.");
 
 		name = "Uncharted 2 (Hable)";
-		description = "Uncharted 2 Mapping\n\nBy John Hable.";
+		description = "Uncharted 2 Mapping\n\nBy John Hable from the \"Filmic Tonemapping for Real-time Rendering\" Siggraph 2010 Course by Haarm-Pieter Duiker.";
 
 		shader->init(
 			"Uncharted2",
