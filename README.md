@@ -30,10 +30,6 @@ Available operators:
 
 <img src="res/screenshot.png" height="300">
 
-## Running
-
-
-
 ## Building
 
 Clone the repository with all dependencies and use CMake to generate project files for your favourite IDE or build system. Unix example using make:
@@ -45,6 +41,10 @@ cd build
 cmake ..
 make
 ```
+
+Alternatively, pre-compiled builds are available here:
+
+[Tone Mapper v1.0](https://github.com/tizian/tonemapper/releases/download/v1.0-test/Tone.Mapper.1.0.Windows.x64.zip) (Windows x64)
 
 ## Third Party Code
 
