@@ -32,12 +32,28 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-add_executable(tonemapper
+set (EXTRA_SOURCE "")
+if (WIN32)
+	set(EXTRA_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/res/tonemapper.rc)
+elseif(APPLE)
+	set(EXTRA_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/res/tonemapper.icns)
+endif()
+
+add_executable(tonemapper MACOSX_BUNDLE
 	src/image.cpp
 	src/gui.cpp
 	src/main.cpp
+	${EXTRA_SOURCE}
 )
 
 target_link_libraries(tonemapper nanogui ${NANOGUI_EXTRA_LIBS})
 
-set_target_properties(tonemapper PROPERTIES OUTPUT_NAME "tonemapper")
+set_target_properties(tonemapper PROPERTIES OUTPUT_NAME "Tone Mapper")
+
+if (APPLE)
+	set_target_properties(tonemapper PROPERTIES MACOSX_BUNDLE_NAME "Tone Mapper")
+	set_target_properties(tonemapper PROPERTIES MACOSX_BUNDLE_BUNDLE_GUI_IDENTIFIER "com.tizianzeltner.tonemapper")
+	set_target_properties(tonemapper PROPERTIES MACOSX_BUNDLE_ICON_FILE tonemapper.icns)
+	set_target_properties(tonemapper PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/res/info.plist)
+	set_source_files_properties(resources/tonemapper.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+endif()

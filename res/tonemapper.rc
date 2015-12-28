@@ -1,0 +1,27 @@
+﻿id ICON "tonemapper.ico"
+GLFW_ICON ICON "tonemapper.ico" 
+
+1 VERSIONINFO
+FILEVERSION     1,0
+PRODUCTVERSION  1,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", ""
+      VALUE "FileDescription", "Tone Mapper"
+      VALUE "FileVersion", "1.0"
+      VALUE "InternalName", "Tone Mapper"
+      VALUE "LegalCopyright", "Tizian Zeltner"
+      VALUE "OriginalFilename", "Tone Mapper.exe"
+      VALUE "ProductName", "Tone Mapper"
+      VALUE "ProductVersion", "1.0"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END
