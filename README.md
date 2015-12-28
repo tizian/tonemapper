@@ -3,7 +3,7 @@
 
 ## Description
 
-Tone Mapper is a a small application to compare and apply various tone mapping operators.
+Tone Mapper is a a small application to compare and apply various tone mapping operators. It features an interactive preview and a simple GUI to tweak different parameters.
 
 It was written for the [Multimedia Communications (HS 2015)](https://graphics.ethz.ch/teaching/mmcom15/home.php) course at ETH Zürich.
 
@@ -27,6 +27,8 @@ Available operators:
 * **Logarithmic**
 * **Exponential**
 * **Exponentiation**
+
+Currently, only OpenEXR (.exr) input files are supported.
 
 <img src="res/screenshot.png" height="300">
 
