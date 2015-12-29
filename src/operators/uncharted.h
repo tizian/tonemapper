@@ -61,8 +61,8 @@ public:
 			"	 vec4 curr = tonemap(exposureBias * color);\n"
 			"	 vec4 whiteScale = 1.0 / tonemap(vec4(W));\n"
 			"	 color = curr * whiteScale;\n"
-			"	 color = gammaCorrect(color);\n"
-			"    out_color = clampedValue(color);\n"
+			"	 color = clampedValue(color);\n"
+			"    out_color = gammaCorrect(color);\n"
 			"}"
 		);
 	}
@@ -117,6 +117,7 @@ protected:
 		float whiteScale = 1.f / mapAux(W, A, B, C, D, E, F);
 		value = value * whiteScale;
 		return std::pow(value, 1.f / gamma);
+
 	}
 
 protected:

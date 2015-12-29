@@ -27,11 +27,5 @@ inline float inverseLerp(float v, float min, float max) {
 }
 
 inline float clamp(float v, float min, float max) {
-	if (v <= min) return min;
-	if (v >= max) return max;
-	return v;
-}
-
-inline float gammaCorrect(float v, float gamma) {
-	return std::pow(v, 1.f / gamma);
+	return std::min(max, std::max(min, v));
 }

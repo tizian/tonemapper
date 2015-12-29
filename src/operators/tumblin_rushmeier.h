@@ -52,9 +52,9 @@ public:
 			"	 float beta_d = -0.4 * log10Ld*log10Ld - 2.584 * log10Ld + 2.0208;\n"
 			"\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = pow(color, vec4(alpha_rw/alpha_d)) / Ldmax * pow(10.0, (beta_rw - beta_d) / alpha_d) - (1 / Cmax);\n"
-			"	 color = gammaCorrect(color);\n"
-			"    out_color = clampedValue(color);\n"
+			"	 color = pow(color, vec4(alpha_rw/alpha_d)) / Ldmax * pow(10.0, (beta_rw - beta_d) / alpha_d) - (1.0 / Cmax);\n"
+			"	 color = clampedValue(color);\n"
+			"    out_color = gammaCorrect(color);\n"
 			"}"
 		);
 	}

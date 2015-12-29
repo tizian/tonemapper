@@ -62,8 +62,8 @@ public:
 			"	 color = color / Lavg;\n"
 			"	 float k = (1.0-t)*(c-b) / ((1.0-s)*(w-c) + (1.0-t)*(c-b));\n"
 			"	 color = vec4(tonemap(color.r, k), tonemap(color.g, k), tonemap(color.b, k), 1.0);\n"
-			"	 color = gammaCorrect(color);\n"
-			"    out_color = clampedValue(color);\n"
+			"	 color = clampedValue(color);\n"
+			"    out_color = gammaCorrect(color);\n"
 			"}"
 		);
 	}

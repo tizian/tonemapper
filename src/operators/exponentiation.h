@@ -43,8 +43,8 @@ public:
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
 			"	 color = color / (exposure * Lmax);\n"
-			"	 color = gammaCorrectPlus(color);\n"
-			"    out_color = clampedValue(color);\n"
+			"    color = clampedValue(color);\n"
+			"	 out_color = gammaCorrectPlus(color);\n"
 			"}"
 		);
 	}

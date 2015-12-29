@@ -41,8 +41,8 @@ public:
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
 			"	 color = (color * (1.0 + color / (Lwhite * Lwhite))) / (1.0 + color);\n"
-			"	 color = gammaCorrect(color);\n"
-			"    out_color = clampedValue(color);\n"
+			"	 color = clampedValue(color);\n"
+			"    out_color = gammaCorrect(color);\n"
 			"}"
 		);
 	}

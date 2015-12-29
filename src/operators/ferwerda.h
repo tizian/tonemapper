@@ -88,8 +88,8 @@ public:
 			"	 float sw = s(color);\n"
 			"	 color = mP * color + k * mS * sw;\n"
 			"	 color = color / Ldmax;\n"
-			"	 color = gammaCorrect(color);\n"
-			"    out_color = clampedValue(color);\n"
+			"	 color = clampedValue(color);\n"
+			"    out_color = gammaCorrect(color);\n"
 			"}"
 		);
 	}

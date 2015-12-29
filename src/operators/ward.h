@@ -46,8 +46,8 @@ public:
 			"    vec4 color = exposure * texture(source, uv);\n"
 			"	 color = m * color;\n"
 			"	 color = color / Ldmax;\n"
-			"	 color = gammaCorrect(color);\n"
-			"    out_color = clampedValue(color);\n"
+			"	 color = clampedValue(color);\n"
+			"    out_color = gammaCorrect(color);\n"
 			"}"
 		);
 	}

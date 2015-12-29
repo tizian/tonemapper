@@ -60,8 +60,8 @@ public:
 			"	 float c1 = (0.01 * Ldmax) / (log(1 + LwmaxP)/log(10.0));\n"
 			"	 vec4 c2 = log(color + 1) / log(2.0 + 8 * (pow(color / LwmaxP, vec4(exponent))));\n"
 			"	 color = c1 * c2;\n"
-			"	 color = vec4(gammaCorrect(color.r), gammaCorrect(color.g), gammaCorrect(color.b), 1.0);\n"
-			"    out_color = clampedValue(color);\n"
+			"	 color = clampedValue(color);\n"
+			"	 out_color = vec4(gammaCorrect(color.r), gammaCorrect(color.g), gammaCorrect(color.b), 1.0);\n"
 			"}"
 		);
 	}

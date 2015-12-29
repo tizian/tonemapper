@@ -69,8 +69,8 @@ public:
 			"	 color.r = color.r / (color.r + sigmaIr);\n"
 			"	 color.g = color.g / (color.g + sigmaIg);\n"
 			"	 color.b = color.b / (color.b + sigmaIb);\n"
-			"	 color = gammaCorrect(color);\n"
-			"    out_color = clampedValue(color);\n"
+			"	 color = clampedValue(color);\n"
+			"    out_color = gammaCorrect(color);\n"
 			"}"
 		);
 	}
@@ -147,8 +147,6 @@ protected:
 		color.b() = color.b() / (color.b() + sigmaIb);
 
 		return color.pow(1.f / gamma);
-
-		return Color3f(gammaCorrect(color.r(), gamma), gammaCorrect(color.g(), gamma), gammaCorrect(color.b(), gamma));
 	}
 
 	float sigmaIa(float Ia, float Iav_a, float L, float Lav, float c, float a, float m, float f) const {
