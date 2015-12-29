@@ -66,7 +66,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 
 	auto about = new Button(m_window->buttonPanel(), "", ENTYPO_ICON_INFO);
 	about->setCallback([&, ctx] {
-		auto dlg = new MessageDialog(this, MessageDialog::Type::Information, "Tone Mapper", "Copyright (c) 2015 Tizian Zeltner\nAll right reserved.");
+		auto dlg = new MessageDialog(this, MessageDialog::Type::Information, "About", "Tone Mapper Version 1.0\nCopyright (c) 2015 Tizian Zeltner\nAll right reserved.");
 		dlg->messageLabel()->setFixedWidth(300);
 		dlg->messageLabel()->setFontSize(20);
 		performLayout(ctx);
