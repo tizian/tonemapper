@@ -2,8 +2,19 @@
 
 #include <gui.h>
 
+#ifdef WIN32
+	#include <windows.h>
+#endif
+
 int main(int argc, char *argv[])
 {
+	#ifndef DEBUG
+	#ifdef WIN32
+		HWND hWnd = GetConsoleWindow();
+		ShowWindow(hWnd, SW_HIDE);
+	#endif
+	#endif
+
 	try {
         nanogui::init();
 
