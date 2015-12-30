@@ -39,7 +39,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new DragoOperator());
 	m_tonemapOperators.push_back(new ReinhardDevlinOperator());
 	m_tonemapOperators.push_back(new FilmicOperator());
-	m_tonemapOperators.push_back(new Uncharted2Operator());
+	m_tonemapOperators.push_back(new UnchartedOperator());
 	m_tonemapOperators.push_back(new InsomniacOperator());
 	m_tonemapOperators.push_back(new MaximumDivisionOperator());
 	m_tonemapOperators.push_back(new MeanValueOperator());

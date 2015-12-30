@@ -2,9 +2,9 @@
 
 #include <tonemap.h>
 
-class Uncharted2Operator : public TonemapOperator {
+class UnchartedOperator : public TonemapOperator {
 public:
-	Uncharted2Operator() : TonemapOperator() {
+	UnchartedOperator() : TonemapOperator() {
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
 		parameters["A"] = Parameter(0.22f, 0.f, 1.f, "A", "Shoulder strength curve parameter");
 		parameters["B"] = Parameter(0.3f, 0.f, 1.f, "B", "Linear strength curve parameter");
@@ -14,11 +14,11 @@ public:
 		parameters["F"] = Parameter(0.3f, 0.f, 1.f, "F", "Toe denominator curve parameter");
 		parameters["W"] = Parameter(11.2f, 0.f, 20.f, "W", "White point\nMinimal value that is mapped to 1.");
 
-		name = "Uncharted 2 (Hable)";
-		description = "Uncharted 2 Mapping\n\nBy John Hable from the \"Filmic Tonemapping for Real-time Rendering\" Siggraph 2010 Course by Haarm-Pieter Duiker.";
+		name = "Uncharted (Hable)";
+		description = "Uncharted Mapping\n\nBy John Hable from the \"Filmic Tonemapping for Real-time Rendering\" Siggraph 2010 Course by Haarm-Pieter Duiker.";
 
 		shader->init(
-			"Uncharted2",
+			"Uncharted",
 
 			"#version 330\n"
 			"in vec2 position;\n"

@@ -5,7 +5,7 @@
 
 Tone Mapper is a a small application to compare and apply various tone mapping operators. It features an interactive preview and a simple GUI to tweak different parameters.
 
-It was written for the [Multimedia Communications (HS 2015)](https://graphics.ethz.ch/teaching/mmcom15/home.php) course at ETH Zürich.
+It was written for the [Multimedia Communications](https://graphics.ethz.ch/teaching/mmcom15/home.php) course at ETH Zürich (Fall Semester 2015).
 
 Available operators:
 * **Linear** - Gamma correction only
@@ -19,7 +19,7 @@ Available operators:
 * **Drago** - From ["Adaptive Logarithmic Mapping For Displaying High Contrast Scenes"](http://resources.mpi-inf.mpg.de/tmo/logmap/logmap.pdf) by Drago et al. 2003
 * **Reinhard-Devlin** - From ["Dynamic Range Reduction Inspired by Photoreceptor Physiology"](http://erikreinhard.com/papers/tvcg2005.pdf) by Reinhard and Devlin 2005
 * **Filmic** - By Jim Hejl and Richard Burgess-Dawson from the ["Filmic Tonemapping for Real-time Rendering"](http://de.slideshare.net/hpduiker/filmic-tonemapping-for-realtime-rendering-siggraph-2010-color-course) Siggraph 2010 Course by Haarm-Pieter Duiker
-* **Uncharted 2** - By John Hable from the ["Filmic Tonemapping for Real-time Rendering"](http://de.slideshare.net/hpduiker/filmic-tonemapping-for-realtime-rendering-siggraph-2010-color-course) Siggraph 2010 Course by Haarm-Pieter Duiker
+* **Uncharted** - By John Hable from the ["Filmic Tonemapping for Real-time Rendering"](http://de.slideshare.net/hpduiker/filmic-tonemapping-for-realtime-rendering-siggraph-2010-color-course) Siggraph 2010 Course by Haarm-Pieter Duiker
 * **Insomniac** - From ["An efficient and user-friendly tone mapping operator"](http://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2012/09/an-efficient-and-user-friendly-tone-mapping-operator.pdf) by Mike Day
 * **Divison by maximum**
 * **Mean Value Mapping**
