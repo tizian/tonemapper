@@ -53,6 +53,5 @@ Alternatively, pre-compiled builds are available here:
 The following libraries have been used:
 
 * [nanogui](https://github.com/wjakob/nanogui)
-* [filesystem](https://github.com/wjakob/filesystem)
 * [tinyexr](https://github.com/syoyo/tinyexr)
 * [stb](https://github.com/nothings/stb)
