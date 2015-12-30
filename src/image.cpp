@@ -1,3 +1,12 @@
+/*
+    src/image.cpp -- Image datatype
+    
+    Copyright (c) 2015 Tizian Zeltner
+
+    Tone Mapper is provided under the MIT License.
+    See the LICENSE.txt file for the conditions of the license. 
+*/
+
 #include <image.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION

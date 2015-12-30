@@ -56,3 +56,9 @@ The following libraries have been used:
 * [nanogui](https://github.com/wjakob/nanogui)
 * [tinyexr](https://github.com/syoyo/tinyexr)
 * [stb](https://github.com/nothings/stb)
+
+## License
+
+Tone Mapper is provided under the MIT License.
+
+See the LICENSE.txt file for the conditions of the license.
