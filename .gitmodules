@@ -1,3 +1,4 @@
 [submodule "ext/nanogui"]
 	path = ext/nanogui
-	url = git://github.com/wjakob/nanogui.git
+	url = git://github.com/tizian/nanogui.git
+	branch = scrolled-tooltips
