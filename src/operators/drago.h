@@ -16,7 +16,7 @@ public:
 	DragoOperator() : TonemapOperator() {
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
 		parameters["slope"] = Parameter(4.5f, 0.f, 10.f, "slope", "Additional Gamma correction parameter:\nElevation ratio of the line passing by the origin and tangent to the curve.");
-		parameters["start"] = Parameter(0.018f, 0.f, 2.f, "start", "Additional Gamma correction parameter:\nAbscissa the the point of tangency.");
+		parameters["start"] = Parameter(0.018f, 0.f, 2.f, "start", "Additional Gamma correction parameter:\nAbscissa at the point of tangency.");
 		parameters["Ldmax"] = Parameter(100.f, 0.f, 200.f, "Ldmax", "Maximum luminance capability of the display (cd/m^2)");
 		parameters["b"] = Parameter(0.85f, 0.f, 1.f, "b", "Bias function parameter");
 
