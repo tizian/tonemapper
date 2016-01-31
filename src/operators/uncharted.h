@@ -1,7 +1,7 @@
 /*
     src/uncharted.h -- Uncharted tonemapping operator
     
-    Copyright (c) 2015 Tizian Zeltner
+    Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license. 
@@ -93,12 +93,14 @@ public:
 		for (int i = 0; i < size.y(); ++i) {
 			for (int j = 0; j < size.x(); ++j) {
 				const Color3f &color = image->ref(i, j);
-				float colorR = map(color.r(), exposure, gamma, A, B, C, D, E, F, W);
-				float colorG = map(color.g(), exposure, gamma, A, B, C, D, E, F, W);
-				float colorB = map(color.b(), exposure, gamma, A, B, C, D, E, F, W);
-				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
-				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
-				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				Color3f c = Color3f(map(color.r(), exposure, A, B, C, D, E, F, W),
+									map(color.g(), exposure, A, B, C, D, E, F, W),
+									map(color.b(), exposure, A, B, C, D, E, F, W));
+				c = c.clampedValue();
+				c = c.gammaCorrect(gamma);
+				dst[0] = (uint8_t) (255.f * c.r());
+				dst[1] = (uint8_t) (255.f * c.g());
+				dst[2] = (uint8_t) (255.f * c.b());
 				dst += 3;
 				*progress += delta;
 			}
@@ -115,18 +117,20 @@ public:
 		float F = parameters.at("F").value;
 		float W = parameters.at("W").value;
 
-		return map(value, 1.f, gamma, A, B, C, D, E, F, W);
+		value = map(value, 1.f, A, B, C, D, E, F, W);
+		value = clamp(value, 0.f, 1.f);
+		value = std::pow(value, 1.f / gamma);
+		return value;
 	}
 
 protected:
-	float map(float v, float exposure, float gamma, float A, float B, float C, float D, float E, float F, float W) const {
+	float map(float v, float exposure, float A, float B, float C, float D, float E, float F, float W) const {
 		float value = exposure * v;
 		float exposureBias = 2.f;
 		value = mapAux(exposureBias * value, A, B, C, D, E, F);
 		float whiteScale = 1.f / mapAux(W, A, B, C, D, E, F);
 		value = value * whiteScale;
-		return std::pow(value, 1.f / gamma);
-
+		return value;
 	}
 
 protected:

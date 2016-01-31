@@ -1,7 +1,7 @@
 /*
     src/reinhard_devlin.h -- Reinhard-Devlin tonemapping operator
     
-    Copyright (c) 2015 Tizian Zeltner
+    Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license. 
@@ -119,10 +119,12 @@ public:
 		for (int i = 0; i < size.y(); ++i) {
 			for (int j = 0; j < size.x(); ++j) {
 				const Color3f &color = image->ref(i, j);
-				Color3f out = map(color, exposure, gamma, m, f, c, a, Iav_r, Iav_g, Iav_b, Lav);
-				dst[0] = (uint8_t) clamp(255.f * out.r(), 0.f, 255.f);
-				dst[1] = (uint8_t) clamp(255.f * out.g(), 0.f, 255.f);
-				dst[2] = (uint8_t) clamp(255.f * out.b(), 0.f, 255.f);
+				Color3f col = map(color, exposure, m, f, c, a, Iav_r, Iav_g, Iav_b, Lav);
+				col = col.clampedValue();
+				col = col.gammaCorrect(gamma);
+				dst[0] = (uint8_t) (255.f * col.r());
+				dst[1] = (uint8_t) (255.f * col.g());
+				dst[2] = (uint8_t) (255.f * col.b());
 				dst += 3;
 				*progress += delta;
 			}
@@ -140,11 +142,14 @@ public:
 		float Iav_b = parameters.at("Iav_b").value;
 		float Lav = parameters.at("Lav").value;
 
-		return map(Color3f(value), 1.f, gamma, m, f, c, a, Iav_r, Iav_g, Iav_b, Lav).getLuminance();
+		value = map(Color3f(value), 1.f, m, f, c, a, Iav_r, Iav_g, Iav_b, Lav).getLuminance();
+		value = clamp(value, 0.f, 1.f);
+		value = std::pow(value, 1.f / gamma);
+		return value;
 	}
 
 protected:
-	Color3f map(const Color3f &col, float exposure, float gamma, float m, float f, float c, float a, float Iav_r, float Iav_g, float Iav_b, float Lav) const {
+	Color3f map(const Color3f &col, float exposure, float m, float f, float c, float a, float Iav_r, float Iav_g, float Iav_b, float Lav) const {
 		Color3f color = exposure * col;
 		float L = color.getLuminance();
 		float sigmaIr = sigmaIa(color.r(), exposure * Iav_r, L, exposure * Lav, c, a, m, f);
@@ -155,7 +160,7 @@ protected:
 		color.g() = color.g() / (color.g() + sigmaIg);
 		color.b() = color.b() / (color.b() + sigmaIb);
 
-		return color.pow(1.f / gamma);
+		return color;
 	}
 
 	float sigmaIa(float Ia, float Iav_a, float L, float Lav, float c, float a, float m, float f) const {

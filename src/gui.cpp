@@ -1,7 +1,7 @@
 /*
     src/gui.cpp -- Graphical user interface
     
-    Copyright (c) 2015 Tizian Zeltner
+    Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license. 
@@ -76,8 +76,8 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	auto about = new Button(m_window->buttonPanel(), "", ENTYPO_ICON_INFO);
 	about->setCallback([&, ctx] {
 		auto dlg = new MessageDialog(this, MessageDialog::Type::Information, "About",
-			"Tone Mapper Version 1.0\n"
-			"Copyright (c) 2015 Tizian Zeltner\n"
+			"Tone Mapper Version 1.1\n"
+			"Copyright (c) 2016 Tizian Zeltner\n"
 			"\n"
 			"Tone Mapper is provided under the MIT License.\n"
 			"\n"

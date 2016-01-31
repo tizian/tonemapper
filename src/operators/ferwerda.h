@@ -1,7 +1,7 @@
 /*
     src/ferwerda.h -- Ferwerda tonemapping operator
     
-    Copyright (c) 2015 Tizian Zeltner
+    Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license. 
@@ -49,14 +49,6 @@ public:
 			"	 return pow(color, vec4(1.0/gamma));\n"
 			"}\n"
 			"\n"
-			"float s(vec4 color) {\n"
-			"	 vec3 xyz;\n"
-			"	 xyz.x = color.r * 0.4124 + color.g * 0.3576 + color.b * 0.1805;\n"
-			"	 xyz.y = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;\n"
-			"	 xyz.z = color.r * 0.0193 + color.g * 0.1192 + color.b * 0.9505;\n"
-			"	 return -0.702 * xyz.x + 1.039 * xyz.y + 0.433 * xyz.z;\n"
-			"}\n"
-			"\n"
 			"float tp(float La) {\n"
 			"	 float logLa = log(La)/log(10.0);\n"
 			"	 float result;\n"
@@ -87,16 +79,24 @@ public:
 			"	 return pow(10.0, result);\n"
 			"}\n"
 			"\n"
+			"float getLuminance(vec4 color) {\n"
+			"	 return 0.212671 * color.r + 0.71516 * color.g + 0.072169 * color.b;\n"
+			"}\n"
+			"\n"
+			"vec4 adjustColor(vec4 color, float L, float Ld) {\n"
+			"	return Ld * color / L;\n"
+			"}\n"
+			"\n"
 			"void main() {\n"
 			"	 float Lda = Ldmax / 2.0;\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
+			"	 float L = getLuminance(color);\n"
 			"	 float mP = tp(Lda) / tp(exposure * Lwa);\n"
 			"	 float mS = ts(Lda) / ts(exposure * Lwa);\n"
 			"	 float k = (1.0 - (Lwa/2.0 - 0.01)/(10.0-0.01));\n"
 			"	 k = clamp(k * k, 0.0, 1.0);\n"
-			"	 float sw = s(color);\n"
-			"	 color = mP * color + k * mS * sw;\n"
-			"	 color = color / Ldmax;\n"
+			"	 float Ld = mP * L + k * mS * L;\n"
+			"	 color = adjustColor(color, L, Ld);\n"
 			"	 color = clampedValue(color);\n"
 			"    out_color = gammaCorrect(color);\n"
 			"}"
@@ -119,10 +119,14 @@ public:
 		for (int i = 0; i < size.y(); ++i) {
 			for (int j = 0; j < size.x(); ++j) {
 				const Color3f &color = image->ref(i, j);
-				Color3f out = map(color, exposure, gamma, Lwa, Ldmax);
-				dst[0] = (uint8_t) clamp(255.f * out.r(), 0.f, 255.f);
-				dst[1] = (uint8_t) clamp(255.f * out.g(), 0.f, 255.f);
-				dst[2] = (uint8_t) clamp(255.f * out.b(), 0.f, 255.f);
+				float Lw = color.getLuminance();
+				float Ld = map(Lw, exposure, Lwa, Ldmax);
+				Color3f c = Ld * color / Lw;
+				c = c.clampedValue();
+				c = c.gammaCorrect(gamma);
+				dst[0] = (uint8_t) (255.f * c.r());
+				dst[1] = (uint8_t) (255.f * c.g());
+				dst[2] = (uint8_t) (255.f * c.b());
 				dst += 3;
 				*progress += delta;
 			}
@@ -134,13 +138,17 @@ public:
 		float Lwa = parameters.at("Lwa").value;
 		float Ldmax = parameters.at("Ldmax").value;
 
-		return map(Color3f(value), 1.f, gamma, Lwa, Ldmax).getLuminance();
+		value = map(Color3f(value), 1.f, Lwa, Ldmax);
+		value = clamp(value, 0.f, 1.f);
+		value = std::pow(value, 1.f / gamma);
+		return value;
 	}
 
 protected:
-	Color3f map(const Color3f &c, float exposure, float gamma, float Lwa, float Ldmax) const {
+	float map(const Color3f &c, float exposure, float Lwa, float Ldmax) const {
 		float Lda = Ldmax / 2.f;
 		Color3f color = exposure * c;
+		float L = color.getLuminance();
 
 		float mP = tp(Lda) / tp(exposure * Lwa);
 		float mS = ts(Lda) / ts(exposure * Lwa);
@@ -148,20 +156,9 @@ protected:
 		float k = (1.f - (Lwa / 2.f - 0.01f) / (10.f - 0.01f));
 		k = clamp(k * k, 0.f, 1.f);
 
-		float sw = s(color);
+		float Ld = mP * L + k * mS * L;
 
-		color = mP * color + k * mS * Color3f(sw);
-		color = color / Ldmax;
-
-		return color.pow(1.f / gamma);
-	}
-
-	inline float s(const Color3f &color) const {
-		Color3f xyz;
-		xyz.r() = color.r() * 0.4124f + color.g() * 0.3576f + color.b() * 0.1805f;
-		xyz.g() = color.r() * 0.2126f + color.g() * 0.7152f + color.b() * 0.0722f;
-		xyz.b() = color.r() * 0.0193f + color.g() * 0.1192f + color.b() * 0.9505f;
-		return -0.702f * xyz.r() + 1.039f * xyz.g() + 0.433f * xyz.b();
+		return Ld;
 	}
 
 	inline float tp(float La) const {

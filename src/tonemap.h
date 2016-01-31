@@ -1,7 +1,7 @@
 /*
     src/tonemap.h -- Baseclass of all tonemapping operators
     
-    Copyright (c) 2015 Tizian Zeltner
+    Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license. 

@@ -1,7 +1,7 @@
 /*
     src/filmic.h -- Filmic tonemapping operator
     
-    Copyright (c) 2015 Tizian Zeltner
+    Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license. 
@@ -56,12 +56,13 @@ public:
 		for (int i = 0; i < size.y(); ++i) {
 			for (int j = 0; j < size.x(); ++j) {
 				const Color3f &color = image->ref(i, j);
-				float colorR = map(color.r(), exposure);
-				float colorG = map(color.g(), exposure);
-				float colorB = map(color.b(), exposure);
-				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
-				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
-				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				Color3f c = Color3f(map(color.r(), exposure),
+									map(color.g(), exposure),
+									map(color.b(), exposure));
+				c = c.clampedValue();
+				dst[0] = (uint8_t) (255.f * c.r());
+				dst[1] = (uint8_t) (255.f * c.g());
+				dst[2] = (uint8_t) (255.f * c.b());
 				dst += 3;
 				*progress += delta;
 			}

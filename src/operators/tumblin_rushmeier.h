@@ -1,7 +1,7 @@
 /*
     src/tumblin_rushmeier.h -- Tumblin-Rushmeier tonemapping operator
     
-    Copyright (c) 2015 Tizian Zeltner
+    Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license. 
@@ -17,7 +17,7 @@ public:
 		parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
 
 		parameters["Ldmax"] = Parameter(86.f, 1.f, 200.f, "Ldmax", "Maximum luminance capability of the display (cd/m^2)");
-		parameters["Cmax"] = Parameter(35.f, 1.f, 100.f, "Cmax", "Maximum contrast ratio between on-screen luminances");
+		parameters["Cmax"] = Parameter(50.f, 1.f, 500.f, "Cmax", "Maximum contrast ratio between on-screen luminances");
 
 		name = "Tumblin-Rushmeier";
 		description = "Tumblin-Rushmeier Mapping\n\nProposed in\"Tone Reproduction for Realistic Images\" by Tumblin and Rushmeier 1993.";
@@ -52,6 +52,14 @@ public:
 			"	 return pow(color, vec4(1.0/gamma));\n"
 			"}\n"
 			"\n"
+			"float getLuminance(vec4 color) {\n"
+			"	 return 0.212671 * color.r + 0.71516 * color.g + 0.072169 * color.b;\n"
+			"}\n"
+			"\n"
+			"vec4 adjustColor(vec4 color, float L, float Ld) {\n"
+			"	return Ld * color / L;\n"
+			"}\n"
+			"\n"
 			"void main() {\n"
 			"	 float log10Lrw = log(exposure * Lavg)/log(10.0);\n"
 			"	 float alpha_rw = 0.4 * log10Lrw + 2.92;\n"
@@ -61,7 +69,9 @@ public:
 			"	 float beta_d = -0.4 * log10Ld*log10Ld - 2.584 * log10Ld + 2.0208;\n"
 			"\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = pow(color, vec4(alpha_rw/alpha_d)) / Ldmax * pow(10.0, (beta_rw - beta_d) / alpha_d) - (1.0 / Cmax);\n"
+			"	 float L = getLuminance(color);\n"
+			"	 float Ld = pow(L, alpha_rw/alpha_d) / Ldmax * pow(10.0, (beta_rw - beta_d) / alpha_d) - (1.0 / Cmax);\n"
+			"	 color = adjustColor(color, L, Ld);\n"
 			"	 color = clampedValue(color);\n"
 			"    out_color = gammaCorrect(color);\n"
 			"}"
@@ -85,12 +95,14 @@ public:
 		for (int i = 0; i < size.y(); ++i) {
 			for (int j = 0; j < size.x(); ++j) {
 				const Color3f &color = image->ref(i, j);
-				float colorR = map(color.r(), exposure, gamma, Lavg, Ldmax, Cmax);
-				float colorG = map(color.g(), exposure, gamma, Lavg, Ldmax, Cmax);
-				float colorB = map(color.b(), exposure, gamma, Lavg, Ldmax, Cmax);
-				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
-				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
-				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				float Lw = color.getLuminance();
+				float Ld = map(Lw, exposure, Lavg, Ldmax, Cmax);
+				Color3f c = Ld * color / Lw;
+				c = c.clampedValue();
+				c = c.gammaCorrect(gamma);
+				dst[0] = (uint8_t) (255.f * c.r());
+				dst[1] = (uint8_t) (255.f * c.g());
+				dst[2] = (uint8_t) (255.f * c.b());
 				dst += 3;
 				*progress += delta;
 			}
@@ -103,11 +115,14 @@ public:
 		float Ldmax = parameters.at("Ldmax").value;
 		float Cmax = parameters.at("Cmax").value;
 
-		return map(value, 1.f, gamma, Lavg, Ldmax, Cmax);
+		value = map(value, 1.f, Lavg, Ldmax, Cmax);
+		value = clamp(value, 0.f, 1.f);
+		value = std::pow(value, 1.f / gamma);
+		return value;
 	}
 
 protected:
-	float map(float v, float exposure, float gamma, float Lavg, float Ldmax, float Cmax) const {
+	float map(float Lw, float exposure, float Lavg, float Ldmax, float Cmax) const {
 		float log10Lrw = std::log10(exposure * Lavg);
 		float alpha_rw = 0.4f * log10Lrw + 2.92f;
 		float beta_rw = -0.4f * log10Lrw*log10Lrw - 2.584f * log10Lrw + 2.0208f;
@@ -115,8 +130,8 @@ protected:
 		float alpha_d = 0.4f * log10Ld + 2.92f;
 		float beta_d = -0.4f * log10Ld*log10Ld - 2.584f * log10Ld + 2.0208f;
 
-		float value = exposure * v;
-		value = std::pow(value, alpha_rw/alpha_d) / Ldmax * std::pow(10.f, (beta_rw - beta_d) / alpha_d) - (1.f / Cmax);
-		return std::pow(value, 1.f / gamma);
+		float L = exposure * Lw;
+		float Ld = std::pow(L, alpha_rw/alpha_d) / Ldmax * std::pow(10.f, (beta_rw - beta_d) / alpha_d) - (1.f / Cmax);
+		return Ld;
 	}
 };

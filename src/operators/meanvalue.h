@@ -1,7 +1,7 @@
 /*
     src/meanvalue.h -- Mean value tonemapping operator
     
-    Copyright (c) 2015 Tizian Zeltner
+    Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license. 
@@ -47,9 +47,19 @@ public:
 			"	 return pow(color, vec4(1.0/gamma));\n"
 			"}\n"
 			"\n"
+			"float getLuminance(vec4 color) {\n"
+			"	 return 0.212671 * color.r + 0.71516 * color.g + 0.072169 * color.b;\n"
+			"}\n"
+			"\n"
+			"vec4 adjustColor(vec4 color, float L, float Ld) {\n"
+			"	return Ld * color / L;\n"
+			"}\n"
+			"\n"
 			"void main() {\n"
 			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = 0.5 * color / (exposure * Lavg);\n"
+			"	 float L = getLuminance(color);\n"
+			"	 float Ld = 0.5 * L / (exposure * Lavg);\n"
+			"	 color = adjustColor(color, L, Ld);\n"
 			"	 color = clampedValue(color);\n"
 			"    out_color = gammaCorrect(color);\n"
 			"}"
@@ -71,12 +81,14 @@ public:
 		for (int i = 0; i < size.y(); ++i) {
 			for (int j = 0; j < size.x(); ++j) {
 				const Color3f &color = image->ref(i, j);
-				float colorR = map(color.r(), exposure, gamma, Lavg);
-				float colorG = map(color.g(), exposure, gamma, Lavg);
-				float colorB = map(color.b(), exposure, gamma, Lavg);
-				dst[0] = (uint8_t) clamp(255.f * colorR, 0.f, 255.f);
-				dst[1] = (uint8_t) clamp(255.f * colorG, 0.f, 255.f);
-				dst[2] = (uint8_t) clamp(255.f * colorB, 0.f, 255.f);
+				float Lw = color.getLuminance();
+				float Ld = map(Lw, exposure, Lavg);
+				Color3f c = Ld * color / Lw;
+				c = c.clampedValue();
+				c = c.gammaCorrect(gamma);
+				dst[0] = (uint8_t) (255.f * c.r());
+				dst[1] = (uint8_t) (255.f * c.g());
+				dst[2] = (uint8_t) (255.f * c.b());
 				dst += 3;
 				*progress += delta;
 			}
@@ -87,13 +99,16 @@ public:
 		float gamma = parameters.at("Gamma").value;
 		float Lavg = parameters.at("Lavg").value;
 
-		return map(value, 1.f, gamma, Lavg);
+		value = map(value, 1.f, Lavg);
+		value = clamp(value, 0.f, 1.f);
+		value = std::pow(value, 1.f / gamma);
+		return value;
 	}
 
 protected:
-	float map(float v, float exposure, float gamma, float Lavg) const {
-		float value = exposure * v;
-		value = 0.5f * value / (exposure * Lavg);
-		return std::pow(value, 1.f / gamma);
+	float map(float Lw, float exposure, float Lavg) const {
+		float L = exposure * Lw;
+		float Ld = 0.5f * L / (exposure * Lavg);
+		return Ld;
 	}
 };
