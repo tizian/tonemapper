@@ -28,7 +28,7 @@ Available operators:
 * **Exponential**
 * **Exponentiation**
 
-Currently, only OpenEXR (.exr) input files are supported.
+Currently, only OpenEXR (.exr) input files are supported. A sample image (example.exr) is included in the project directory.
 
 <img src="res/screenshot.png" height="300">
 
