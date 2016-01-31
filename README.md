@@ -46,8 +46,8 @@ make
 
 Alternatively, pre-compiled builds are available here:
 
-* [v1.0 Windows x64](https://github.com/tizian/tonemapper/releases/download/v1.0/Tone.Mapper.1.0.Windows.x64.zip)
-* [v1.0 Mac OS X](https://github.com/tizian/tonemapper/releases/download/v1.0/Tone.Mapper.1.0.Mac.OS.X.zip)
+* [v1.1 Windows x64](https://github.com/tizian/tonemapper/releases/download/v1.1/Tone.Mapper.1.1.Windows.x64.zip)
+* [v1.1 Mac OS X](https://github.com/tizian/tonemapper/releases/download/v1.1/Tone.Mapper.1.1.Mac.OS.X.zip)
 
 ## Third Party Code
 
