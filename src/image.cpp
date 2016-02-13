@@ -123,10 +123,6 @@ Image::Image(const std::string &filename) {
 	FreeEXRImage(&img);
 }
 
-inline uint8_t convert(float v) {
-	return (uint8_t) clamp(255.f * v, 0.f, 255.f);
-}
-
 void Image::saveAsPNG(const std::string &filename, TonemapOperator *tonemap, float exposure, float *progress) const {
 	uint8_t *rgb8 = new uint8_t[3 * m_size.x() * m_size.y()];
 	uint8_t *dst = rgb8;
