@@ -17,7 +17,8 @@
 #include <operators/exponential.h>
 #include <operators/exponentiation.h>
 #include <operators/ferwerda.h>
-#include <operators/filmic.h>
+#include <operators/filmic1.h>
+#include <operators/filmic2.h>
 #include <operators/insomniac.h>
 #include <operators/uncharted.h>
 #include <operators/linear.h>
@@ -47,7 +48,8 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	m_tonemapOperators.push_back(new TumblinRushmeierOperator());
 	m_tonemapOperators.push_back(new DragoOperator());
 	m_tonemapOperators.push_back(new ReinhardDevlinOperator());
-	m_tonemapOperators.push_back(new FilmicOperator());
+	m_tonemapOperators.push_back(new Filmic1Operator());
+	m_tonemapOperators.push_back(new Filmic2Operator());
 	m_tonemapOperators.push_back(new UnchartedOperator());
 	m_tonemapOperators.push_back(new InsomniacOperator());
 	m_tonemapOperators.push_back(new MaximumDivisionOperator());
@@ -100,6 +102,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 	openButton->setCallback([&] {
 		std::string filename = file_dialog({ {"exr", "OpenEXR"} }, false);
 		if (filename != "") {
+			cout << filename << endl;
 			setImage(filename);
 		}
 	});
@@ -476,6 +479,8 @@ bool TonemapperScreen::keyboardEvent(int key, int scancode, int action, int modi
 
 bool TonemapperScreen::dropEvent(const std::vector<std::string> & filenames) {
 	if (filenames.size() > 0) {
+		cout << filenames[0] << endl;
+
 		setImage(filenames[0]);
 	}
 	return true;

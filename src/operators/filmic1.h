@@ -1,5 +1,5 @@
 /*
-    src/filmic.h -- Filmic tonemapping operator
+    src/filmic1.h -- Filmic 1 tonemapping operator
     
     Copyright (c) 2016 Tizian Zeltner
 
@@ -11,14 +11,14 @@
 
 #include <tonemap.h>
 
-class FilmicOperator : public TonemapOperator {
+class Filmic1Operator : public TonemapOperator {
 public:
-	FilmicOperator() : TonemapOperator() {
-		name = "Filmic";
-		description = "Filmic Mapping\n\nBy Jim Hejl and Richard Burgess-Dawson from the \"Filmic Tonemapping for Real-time Rendering\" Siggraph 2010 Course by Haarm-Pieter Duiker.";
+	Filmic1Operator() : TonemapOperator() {
+		name = "Filmic 1";
+		description = "Filmic Mapping 1\n\nBy Jim Hejl and Richard Burgess-Dawson from the \"Filmic Tonemapping for Real-time Rendering\" Siggraph 2010 Course by Haarm-Pieter Duiker.";
 
 		shader->init(
-			"Filmic",
+			"Filmic 1",
 
 			"#version 330\n"
 			"in vec2 position;\n"

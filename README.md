@@ -18,7 +18,8 @@ Available operators:
 * **Tumblin-Rushmeier** - From ["Tone Reproduction for Realistic Images"](https://www.eecs.berkeley.edu/Research/Projects/CS/vision/classes/cs294-appearance_models/sp2001/cache/tumblin93.pdf) by by Tumblin and Rushmeier 1993
 * **Drago** - From ["Adaptive Logarithmic Mapping For Displaying High Contrast Scenes"](http://resources.mpi-inf.mpg.de/tmo/logmap/logmap.pdf) by Drago et al. 2003
 * **Reinhard-Devlin** - From ["Dynamic Range Reduction Inspired by Photoreceptor Physiology"](http://erikreinhard.com/papers/tvcg2005.pdf) by Reinhard and Devlin 2005
-* **Filmic** - By Jim Hejl and Richard Burgess-Dawson from the ["Filmic Tonemapping for Real-time Rendering"](http://de.slideshare.net/hpduiker/filmic-tonemapping-for-realtime-rendering-siggraph-2010-color-course) Siggraph 2010 Course by Haarm-Pieter Duiker
+* **Filmic 1** - By Jim Hejl and Richard Burgess-Dawson from the ["Filmic Tonemapping for Real-time Rendering"](http://de.slideshare.net/hpduiker/filmic-tonemapping-for-realtime-rendering-siggraph-2010-color-course) Siggraph 2010 Course by Haarm-Pieter Duiker
+* **Filmic 2** - By Graham Aldridge from ["Approximating Film with Tonemapping"](http://iwasbeingirony.blogspot.ch/2010/04/approximating-film-with-tonemapping.html)
 * **Uncharted** - By John Hable from the ["Filmic Tonemapping for Real-time Rendering"](http://de.slideshare.net/hpduiker/filmic-tonemapping-for-realtime-rendering-siggraph-2010-color-course) Siggraph 2010 Course by Haarm-Pieter Duiker
 * **Insomniac** - From ["An efficient and user-friendly tone mapping operator"](http://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2012/09/an-efficient-and-user-friendly-tone-mapping-operator.pdf) by Mike Day
 * **Divison by maximum**

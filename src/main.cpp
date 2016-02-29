@@ -11,6 +11,8 @@
 
 #include <gui.h>
 
+#define DEBUG
+
 #ifdef WIN32
 	#include <windows.h>
 #endif
