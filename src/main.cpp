@@ -7,6 +7,7 @@
     See the LICENSE.txt file for the conditions of the license. 
 */
 
+#include <glad/glad.h>
 #include <global.h>
 
 #include <gui.h>

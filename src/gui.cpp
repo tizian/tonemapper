@@ -8,7 +8,6 @@
 */
 
 #include <gui.h>
-
 #include <image.h>
 #include <tonemap.h>
 
@@ -196,11 +195,6 @@ void TonemapperScreen::setImage(const std::string &filename) {
 
 	setSize(m_windowSize);
 	glfwSetWindowPos(glfwWindow(), 20, 40);
-
-	glGenTextures(1, &m_texture);
-	glBindTexture(GL_TEXTURE_2D, m_texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
 void TonemapperScreen::setTonemapMode(int index) {
@@ -491,6 +485,14 @@ void TonemapperScreen::drawContents() {
 
 	if (m_image) {
 		const Vector2i &imageSize = m_image->getSize();
+
+        if (!m_texture)
+        {
+            glGenTextures(1, &m_texture);
+            glBindTexture(GL_TEXTURE_2D, m_texture);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        }
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_texture);

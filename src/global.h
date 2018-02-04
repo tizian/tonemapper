@@ -15,6 +15,8 @@
 	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <glad/glad.h>
+
 #include <iostream>
 #include <algorithm>
 #include <vector>

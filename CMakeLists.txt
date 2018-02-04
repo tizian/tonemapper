@@ -17,7 +17,6 @@ endif()
 set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_SHARED  OFF CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
 
 
 include_directories(
@@ -27,8 +26,10 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/ext/nanovg/src
 	${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/include
 	${CMAKE_CURRENT_SOURCE_DIR}/ext/filesystem
+	${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg
 	${CMAKE_CURRENT_SOURCE_DIR}/ext/tinyexr
 	${CMAKE_CURRENT_SOURCE_DIR}/ext/stb
+	${CMAKE_CURRENT_SOURCE_DIR}/ext
 	${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
@@ -39,14 +40,44 @@ elseif(APPLE)
 	set(EXTRA_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/res/tonemapper.icns)
 endif()
 
+file(GLOB NANOGUI_SRC_FILES ${PROJECT_SOURCE_DIR}/ext/nanogui/src/*.cpp)
+
+set(GLFW_SRC        ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_init.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_joystick.c
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_monitor.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_time.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_tls.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_window.c
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/wgl_context.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/egl_context.c
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/context.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/init.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/input.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/monitor.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/vulkan.c 
+                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/window.c
+                     )
+
 add_executable(tonemapper MACOSX_BUNDLE
 	src/image.cpp
 	src/gui.cpp
 	src/main.cpp
+    src/glad.c
+    src/global.h
+    src/gui.h
+    src/image.h
+    src/tonemap.h
+    src/color.h
+    ext/nanovg/nanovg.c
+    ${NANOGUI_SRC_FILES}
+    ${GLFW_SRC}
 	${EXTRA_SOURCE}
 )
 
-target_link_libraries(tonemapper nanogui ${NANOGUI_EXTRA_LIBS})
+if (WIN32)
+    target_compile_definitions(tonemapper PRIVATE _GLFW_WIN32 NANOGUI_GLAD)
+endif()
+#target_link_libraries(tonemapper ${CMAKE_CURRENT_SOURCE_DIR}/lib/nanogui.lib)
 
 set_target_properties(tonemapper PROPERTIES OUTPUT_NAME "Tone Mapper")
 
