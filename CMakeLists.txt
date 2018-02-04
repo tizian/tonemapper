@@ -39,24 +39,37 @@ if (WIN32)
 elseif(APPLE)
 	set(EXTRA_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/res/tonemapper.icns)
 endif()
+source_group(icons FILES ${EXTRA_SOURCE})
+
 
 file(GLOB NANOGUI_SRC_FILES ${PROJECT_SOURCE_DIR}/ext/nanogui/src/*.cpp)
+source_group(nanogui FILES 
+    ${NANOGUI_SRC_FILES}
+    ${PROJECT_SOURCE_DIR}/ext/nanovg/nanovg.c
+    ${PROJECT_SOURCE_DIR}/src/glad.c
+    )
 
-set(GLFW_SRC        ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_init.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_joystick.c
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_monitor.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_time.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_tls.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_window.c
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/wgl_context.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/egl_context.c
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/context.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/init.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/input.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/monitor.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/vulkan.c 
-                    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/window.c
-                     )
+set(GLFW_SRC        
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_init.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_joystick.c
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_monitor.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_time.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_tls.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/win32_window.c
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/wgl_context.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/egl_context.c
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/context.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/init.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/input.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/monitor.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/vulkan.c 
+    ${PROJECT_SOURCE_DIR}/ext/GLFW/src/window.c
+)
+source_group(glfw FILES ${GLFW_SRC})
+
+
+file(GLOB OPERATORS_SRC "src/operators/*")
+source_group(operators FILES ${OPERATORS_SRC})
 
 add_executable(tonemapper MACOSX_BUNDLE
 	src/image.cpp
@@ -69,6 +82,7 @@ add_executable(tonemapper MACOSX_BUNDLE
     src/tonemap.h
     src/color.h
     ext/nanovg/nanovg.c
+    ${OPERATORS_SRC}
     ${NANOGUI_SRC_FILES}
     ${GLFW_SRC}
 	${EXTRA_SOURCE}
