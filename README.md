@@ -14,6 +14,7 @@ I've added the Gran Turismo operator, and updated the dependencies to make it ea
 ## Available operators:
 * **Linear** - Gamma correction only
 * **sRGB** - Conversion to the sRGB color space
+* **Gran Turismo** - From[https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp] by Hajime UCHIMURA at Polyphony Digital Inc., 2017 
 * **Reinhard** - From ["Photographic Tone Reproduction for Digital Images"](http://www.cmap.polytechnique.fr/~peyre/cours/x2005signal/hdr_photographic.pdf) by Reinhard et al. 2002
 * **Reinhard (Extended)** - From ["Photographic Tone Reproduction for Digital Images"](http://www.cmap.polytechnique.fr/~peyre/cours/x2005signal/hdr_photographic.pdf) by Reinhard et al. 2002
 * **Ward** - From ["A contrast-based scalefactor for luminance display"](http://eetd.lbl.gov/sites/all/files/publications/lbl-35252.pdf) by Ward 1994
