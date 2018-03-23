@@ -3,11 +3,15 @@
 
 ## Description
 
-Tone Mapper is a a small application to compare and apply various tone mapping operators. It features an interactive preview and a simple GUI to tweak different parameters.
+Tone Mapper is a a small application by Tizian Zeltner to compare and apply various tone mapping operators. It features an interactive preview and a simple GUI to tweak different parameters.
 
 It was written for the [Multimedia Communications](https://graphics.ethz.ch/teaching/mmcom15/home.php) course at ETH Zürich (Fall Semester 2015).
 
-Available operators:
+## About this fork
+
+I've added the Gran Turismo operator, and updated the dependencies to make it easy to compile and run.
+
+## Available operators:
 * **Linear** - Gamma correction only
 * **sRGB** - Conversion to the sRGB color space
 * **Reinhard** - From ["Photographic Tone Reproduction for Digital Images"](http://www.cmap.polytechnique.fr/~peyre/cours/x2005signal/hdr_photographic.pdf) by Reinhard et al. 2002
