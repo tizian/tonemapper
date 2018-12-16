@@ -1,10 +1,10 @@
 /*
     src/drago.h -- Drago tonemapping operator
-    
+
     Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
-    See the LICENSE.txt file for the conditions of the license. 
+    See the LICENSE.txt file for the conditions of the license.
 */
 
 #pragma once
@@ -142,7 +142,7 @@ protected:
 		Lwa = exposure * Lwa / std::pow(1.f + b - 0.85f, 5.f);
 		Lwmax = exposure * Lwmax / Lwa;
 		float L = exposure * Lw / Lwa;
-		
+
 		float exponent = std::log(b) / std::log(0.5f);
 		float c1 = (0.01f * Ldmax) / std::log10(1.f + Lwmax);
 		float c2 = std::log(1.f + L) / std::log(2.f + 8.f * (std::pow(L / Lwmax, exponent)));

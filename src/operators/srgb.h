@@ -1,10 +1,10 @@
 /*
     src/srgb.h -- sRGB tonemapping operator
-    
+
     Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
-    See the LICENSE.txt file for the conditions of the license. 
+    See the LICENSE.txt file for the conditions of the license.
 */
 
 #pragma once

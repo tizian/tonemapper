@@ -1,10 +1,10 @@
 /*
     src/clamping.h -- Clamping tonemapping operator
-    
+
     Copyright (c) 2016 Tizian Zeltner
 
     Tone Mapper is provided under the MIT License.
-    See the LICENSE.txt file for the conditions of the license. 
+    See the LICENSE.txt file for the conditions of the license.
 */
 
 #pragma once
@@ -18,7 +18,7 @@ public:
 
 		name = "Clamping";
 		description = "Clamping\n\nUser defined maximum value that maps to 1.\nDiscussed in \"Quantization Techniques for Visualization of High Dynamic Range Pictures\" by Schlick 1994.";
-		
+
 		shader->init(
 			"Clamping",
 
