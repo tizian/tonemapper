@@ -29,7 +29,7 @@ public:
     inline float getMaximumLuminance() const { return m_maximumLuminance; }
     inline float getAverageLuminance() const { return m_averageLuminance; }
     inline float getLogAverageLuminance() const { return m_logAverageLuminance; }
-	inline float getAutoKeyValue() const { return m_autoKeyValue; }
+    inline float getAutoKeyValue() const { return m_autoKeyValue; }
 
     inline const Eigen::Vector2i &getSize() const { return m_size; }
     inline int getWidth() const { return m_size.x(); }
@@ -47,5 +47,5 @@ private:
     float m_maximumLuminance;
     float m_averageLuminance;
     float m_logAverageLuminance;
-	float m_autoKeyValue;
+    float m_autoKeyValue;
 };

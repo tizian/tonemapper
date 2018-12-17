@@ -10,9 +10,9 @@
 #pragma once
 
 #ifdef _MSC_VER
-	#define WIN32_LEAN_AND_MEAN
-	#define NOMINMAX
-	#define _CRT_SECURE_NO_WARNINGS
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include <iostream>
@@ -28,13 +28,13 @@ using std::cerr;
 using std::endl;
 
 inline float lerp(float t, float min, float max) {
-	return min + t * (max - min);
+    return min + t * (max - min);
 }
 
 inline float inverseLerp(float v, float min, float max) {
-	return (v - min) / (max - min);
+    return (v - min) / (max - min);
 }
 
 inline float clamp(float v, float min, float max) {
-	return std::min(max, std::max(min, v));
+    return std::min(max, std::max(min, v));
 }

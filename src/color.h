@@ -42,15 +42,15 @@ public:
         return coeff(0) * 0.212671f + coeff(1) * 0.715160f + coeff(2) * 0.072169f;
     }
 
-	inline Color3f clampedValue() {
-		return Color3f(	std::max(std::min(coeff(0), 1.f), 0.f),
-						std::max(std::min(coeff(1), 1.f), 0.f),
-						std::max(std::min(coeff(2), 1.f), 0.f));
-	}
+    inline Color3f clampedValue() {
+        return Color3f( std::max(std::min(coeff(0), 1.f), 0.f),
+                        std::max(std::min(coeff(1), 1.f), 0.f),
+                        std::max(std::min(coeff(2), 1.f), 0.f));
+    }
 
-	inline Color3f gammaCorrect(float gamma) {
-		return pow(1.f / gamma);
-	}
+    inline Color3f gammaCorrect(float gamma) {
+        return pow(1.f / gamma);
+    }
 
     std::string toString() const {
         std::ostringstream out;

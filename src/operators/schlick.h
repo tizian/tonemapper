@@ -13,85 +13,89 @@
 
 class SchlickOperator : public TonemapOperator {
 public:
-	SchlickOperator() : TonemapOperator() {
-		parameters["p"] = Parameter(200.f, 1.f, 1000.f, "p", "Rational mapping curve parameter");
+    SchlickOperator() : TonemapOperator() {
+        parameters["p"] = Parameter(200.f, 1.f, 1000.f, "p", "Rational mapping curve parameter");
 
-		name = "Schlick";
-		description = "Schlick Mapping\n\nProposed in \"Quantization Techniques for Visualization of High Dynamic Range Pictures\" by Schlick 1994.";
+        name = "Schlick";
+        description = "Schlick Mapping\n\nProposed in \"Quantization Techniques for Visualization of High Dynamic Range Pictures\" by Schlick 1994.";
 
-		shader->init(
-			"Schlick",
+        shader->init(
+            "Schlick",
 
-			"#version 330\n"
-			"in vec2 position;\n"
-			"out vec2 uv;\n"
-			"void main() {\n"
-			"    gl_Position = vec4(position.x*2-1, position.y*2-1, 0.0, 1.0);\n"
-			"    uv = vec2(position.x, 1-position.y);\n"
-			"}",
+            R"glsl(
+            #version 330
+            in vec2 position;
+            out vec2 uv;
+            void main() {
+                gl_Position = vec4(position.x*2-1, position.y*2-1, 0.0, 1.0);
+                uv = vec2(position.x, 1-position.y);
+            }
+            )glsl",
 
-			"#version 330\n"
-			"uniform sampler2D source;\n"
-			"uniform float exposure;\n"
-			"uniform float Lmax;\n"
-			"uniform float p;\n"
-			"in vec2 uv;\n"
-			"out vec4 out_color;\n"
-			"\n"
-			"vec4 clampedValue(vec4 color) {\n"
-			"	 color.a = 1.0;\n"
-			"	 return clamp(color, 0.0, 1.0);\n"
-			"}\n"
-			"\n"
-			"void main() {\n"
-			"    vec4 color = exposure * texture(source, uv);\n"
-			"	 color = p * color / (p * color - color + exposure * Lmax);\n"
-			"    out_color = clampedValue(color);\n"
-			"}"
-		);
-	}
+            R"glsl(
+            #version 330
+            uniform sampler2D source;
+            uniform float exposure;
+            uniform float Lmax;
+            uniform float p;
+            in vec2 uv;
+            out vec4 out_color;
 
-	virtual void setParameters(const Image *image) override {
-		parameters["Lmax"] = Parameter(image->getMaximumLuminance(), "Lmax");
-	};
+            vec4 clampedValue(vec4 color) {
+                color.a = 1.0;
+                return clamp(color, 0.0, 1.0);
+            }
 
-	void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
-		const nanogui::Vector2i &size = image->getSize();
-		*progress = 0.f;
-		float delta = 1.f / (size.x() * size.y());
+            void main() {
+                vec4 color = exposure * texture(source, uv);
+                color = p * color / (p * color - color + exposure * Lmax);
+                out_color = clampedValue(color);
+            }
+            )glsl"
+        );
+    }
 
-		float Lmax = parameters.at("Lmax").value;
-		float p = parameters.at("p").value;
+    virtual void setParameters(const Image *image) override {
+        parameters["Lmax"] = Parameter(image->getMaximumLuminance(), "Lmax");
+    };
 
-		for (int i = 0; i < size.y(); ++i) {
-			for (int j = 0; j < size.x(); ++j) {
-				const Color3f &color = image->ref(i, j);
-				Color3f c = Color3f(map(color.r(), exposure, Lmax, p),
-									map(color.g(), exposure, Lmax, p),
-									map(color.b(), exposure, Lmax, p));
-				c = c.clampedValue();
-				dst[0] = (uint8_t) (255.f * c.r());
-				dst[1] = (uint8_t) (255.f * c.g());
-				dst[2] = (uint8_t) (255.f * c.b());
-				dst += 3;
-				*progress += delta;
-			}
-		}
-	}
+    void process(const Image *image, uint8_t *dst, float exposure, float *progress) const override {
+        const nanogui::Vector2i &size = image->getSize();
+        *progress = 0.f;
+        float delta = 1.f / (size.x() * size.y());
 
-	float graph(float value) const override {
-		float Lmax = parameters.at("Lmax").value;
-		float p = parameters.at("p").value;
+        float Lmax = parameters.at("Lmax").value;
+        float p = parameters.at("p").value;
 
-		value = map(value, 1.f, Lmax, p);
-		value = clamp(value, 0.f, 1.f);
-		return value;
-	}
+        for (int i = 0; i < size.y(); ++i) {
+            for (int j = 0; j < size.x(); ++j) {
+                const Color3f &color = image->ref(i, j);
+                Color3f c = Color3f(map(color.r(), exposure, Lmax, p),
+                                    map(color.g(), exposure, Lmax, p),
+                                    map(color.b(), exposure, Lmax, p));
+                c = c.clampedValue();
+                dst[0] = (uint8_t) (255.f * c.r());
+                dst[1] = (uint8_t) (255.f * c.g());
+                dst[2] = (uint8_t) (255.f * c.b());
+                dst += 3;
+                *progress += delta;
+            }
+        }
+    }
+
+    float graph(float value) const override {
+        float Lmax = parameters.at("Lmax").value;
+        float p = parameters.at("p").value;
+
+        value = map(value, 1.f, Lmax, p);
+        value = clamp(value, 0.f, 1.f);
+        return value;
+    }
 
 protected:
-	float map(float v, float exposure, float Lmax, float p) const {
-		float value = exposure * v;
-		value = p * value / (p * value - value + exposure * Lmax);
-		return value;
-	}
+    float map(float v, float exposure, float Lmax, float p) const {
+        float value = exposure * v;
+        value = p * value / (p * value - value + exposure * Lmax);
+        return value;
+    }
 };

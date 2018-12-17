@@ -45,12 +45,12 @@ private:
     int m_exposureIndex;
 
     Image                   *m_image = nullptr;
-    uint32_t                m_texture = 0;
+    uint32_t                 m_texture = 0;
 
-    float                   m_exposure = 1.f;
+    float                    m_exposure = 1.f;
 
     std::thread             *m_saveThread = nullptr;
-    float                   m_progress = 0.f;
+    float                    m_progress = 0.f;
 
     nanogui::Button         *m_saveButton = nullptr;
     nanogui::Window         *m_saveWindow = nullptr;
@@ -66,11 +66,11 @@ private:
     nanogui::Widget         *m_exposureWidget = nullptr;
     nanogui::Graph          *m_graph = nullptr;
 
-    const int               MAIN_WIDTH = 960;
-    Eigen::Vector2i         m_windowSize;
-    Eigen::Vector2i         m_scaledImageSize;
-    Eigen::Vector2i         m_imageOffset;
-    float                   m_imageScale;
+    const int                MAIN_WIDTH = 960;
+    Eigen::Vector2i          m_windowSize;
+    Eigen::Vector2i          m_scaledImageSize;
+    Eigen::Vector2i          m_imageOffset;
+    float                    m_imageScale;
 
-    bool                    m_shiftDown;
+    bool                     m_shiftDown;
 };
