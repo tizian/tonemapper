@@ -71,6 +71,4 @@ private:
     Eigen::Vector2i          m_scaledImageSize;
     Eigen::Vector2i          m_imageOffset;
     float                    m_imageScale;
-
-    bool                     m_shiftDown;
 };

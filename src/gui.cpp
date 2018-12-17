@@ -146,8 +146,6 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
 
     performLayout(mNVGContext);
 
-    m_shiftDown = false;
-
     drawAll();
     setVisible(true);
 }
@@ -478,15 +476,6 @@ bool TonemapperScreen::keyboardEvent(int key, int scancode, int action, int modi
         return true;
     }
 
-    if ((key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) && action == GLFW_PRESS) {
-        m_shiftDown = true;
-        return true;
-    }
-    if ((key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) && action == GLFW_RELEASE) {
-        m_shiftDown = false;
-        return true;
-    }
-
     return false;
 }
 
@@ -494,19 +483,19 @@ bool TonemapperScreen::mouseMotionEvent(const Eigen::Vector2i &p, const Eigen::V
     if (Screen::mouseMotionEvent(p, rel, button, modifiers))
         return true;
 
-    if (m_shiftDown && button == 1) {
+    if (button == 1) {
         m_imageOffset += rel;
+        return true;
     }
+    return false;
 }
 
 bool TonemapperScreen::scrollEvent(const Eigen::Vector2i &p, const Eigen::Vector2f &rel) {
     if (Screen::scrollEvent(p, rel))
         return true;
 
-    if (m_shiftDown) {
-        m_imageScale = std::max(0.f, m_imageScale + rel[1]);
-        cout << (m_imageScale) << endl;
-    }
+    m_imageScale += rel[1];
+    return true;
 }
 
 bool TonemapperScreen::dropEvent(const std::vector<std::string> & filenames) {
@@ -530,10 +519,12 @@ void TonemapperScreen::drawContents() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, imageSize.x(), imageSize.y(), 0, GL_RGB, GL_FLOAT, (uint8_t *)m_image->getData());
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
-        GLint x = (GLint) (mFBSize[0] - m_imageScale*m_scaledImageSize[0]) / 2 + m_imageOffset[0];
-        GLint y = (GLint) (mFBSize[1] - m_imageScale*m_scaledImageSize[1]) / 2 - m_imageOffset[1];
-        GLsizei width = (GLsizei) (m_imageScale*m_scaledImageSize[0]);
-        GLsizei height = (GLsizei) (m_imageScale*m_scaledImageSize[1]);
+        float scale = std::pow(1.1f, m_imageScale);
+
+        GLint x = (GLint) (mFBSize[0] - scale*m_scaledImageSize[0]) / 2 + m_imageOffset[0];
+        GLint y = (GLint) (mFBSize[1] - scale*m_scaledImageSize[1]) / 2 - m_imageOffset[1];
+        GLsizei width = (GLsizei) (scale*m_scaledImageSize[0]);
+        GLsizei height = (GLsizei) (scale*m_scaledImageSize[1]);
         glViewport(x, y, width, height);
 
         m_tonemapOperators[m_tonemapIndex]->shader->bind();
