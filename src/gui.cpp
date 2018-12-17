@@ -19,6 +19,7 @@
 #include <operators/ferwerda.h>
 #include <operators/filmic1.h>
 #include <operators/filmic2.h>
+#include <operators/gran_turismo.h>
 #include <operators/insomniac.h>
 #include <operators/uncharted.h>
 #include <operators/linear.h>
@@ -50,6 +51,7 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
     m_tonemapOperators.push_back(new ReinhardDevlinOperator());
     m_tonemapOperators.push_back(new Filmic1Operator());
     m_tonemapOperators.push_back(new Filmic2Operator());
+    m_tonemapOperators.push_back(new GranTurismoOperator());
     m_tonemapOperators.push_back(new UnchartedOperator());
     m_tonemapOperators.push_back(new InsomniacOperator());
     m_tonemapOperators.push_back(new MaximumDivisionOperator());
