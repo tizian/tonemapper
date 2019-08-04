@@ -22,7 +22,10 @@ Available operators:
 * **Filmic 2** - By Graham Aldridge from ["Approximating Film with Tonemapping"](http://iwasbeingirony.blogspot.ch/2010/04/approximating-film-with-tonemapping.html)
 * **Uncharted** - By John Hable from the ["Filmic Tonemapping for Real-time Rendering"](http://de.slideshare.net/hpduiker/filmic-tonemapping-for-realtime-rendering-siggraph-2010-color-course) Siggraph 2010 Course by Haarm-Pieter Duiker
 * **Insomniac** - From ["An efficient and user-friendly tone mapping operator"](http://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2012/09/an-efficient-and-user-friendly-tone-mapping-operator.pdf) by Mike Day
-* **Gran Turismo** - Crated by Hajime Uchimura from [Polyphony Digital Inc.](https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp)
+* **Gran Turismo** - From ["HDR theory and practice"](https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp) by Hajime Uchimura (Polyphony Digital Inc.), 2017
+* **ACES (Narkowicz)** - [ACES curve](https://en.wikipedia.org/wiki/Academy_Color_Encoding_System) fit by [Krzysztof Narkowicz](https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/)
+* **ACES (Unreal)** - Unreal 3 color grading curve adapted by [Romain Guy](https://www.shadertoy.com/view/llXyWr) to be close to [ACES curve](https://en.wikipedia.org/wiki/Academy_Color_Encoding_System)
+* **AMD (Lottes)** - AMD curve from ["Advanced Techniques and Optimization of HDR Color Pipelines"](http://32ipi028l5q82yhj72224m8j.wpengine.netdna-cdn.com/wp-content/uploads/2016/03/GdcVdrLottes.pdf) by Timothy Lottes, 2016
 * **Divison by maximum**
 * **Mean Value Mapping**
 * **Clamping**

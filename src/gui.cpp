@@ -22,6 +22,9 @@
 #include <operators/uncharted.h>
 #include <operators/insomniac.h>
 #include <operators/gran_turismo.h>
+#include <operators/aces_narkowicz.h>
+#include <operators/aces_unreal.h>
+#include <operators/amd.h>
 #include <operators/linear.h>
 #include <operators/logarithmic.h>
 #include <operators/maxdivision.h>
@@ -54,6 +57,9 @@ TonemapperScreen::TonemapperScreen() : nanogui::Screen(Eigen::Vector2i(800, 600)
     m_tonemapOperators.push_back(new UnchartedOperator());
     m_tonemapOperators.push_back(new InsomniacOperator());
     m_tonemapOperators.push_back(new GranTurismoOperator());
+    m_tonemapOperators.push_back(new AcesNarkowiczOperator());
+    m_tonemapOperators.push_back(new AcesUnrealOperator());
+    m_tonemapOperators.push_back(new AmdOperator());
     m_tonemapOperators.push_back(new MaximumDivisionOperator());
     m_tonemapOperators.push_back(new MeanValueOperator());
     m_tonemapOperators.push_back(new ClampingOperator());
