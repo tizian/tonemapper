@@ -22,6 +22,7 @@ Available operators:
 * **Filmic 2** - By Graham Aldridge from ["Approximating Film with Tonemapping"](http://iwasbeingirony.blogspot.ch/2010/04/approximating-film-with-tonemapping.html)
 * **Uncharted** - By John Hable from the ["Filmic Tonemapping for Real-time Rendering"](http://de.slideshare.net/hpduiker/filmic-tonemapping-for-realtime-rendering-siggraph-2010-color-course) Siggraph 2010 Course by Haarm-Pieter Duiker
 * **Insomniac** - From ["An efficient and user-friendly tone mapping operator"](http://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2012/09/an-efficient-and-user-friendly-tone-mapping-operator.pdf) by Mike Day
+* **Gran Turismo** - Crated by Hajime Uchimura from [Polyphony Digital Inc.](https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp)
 * **Divison by maximum**
 * **Mean Value Mapping**
 * **Clamping**
