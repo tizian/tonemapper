@@ -99,8 +99,8 @@ public:
         parameters.at("m").value = m;
 
         parameters["Iav_r"] = Parameter(image->getAverageIntensity().r(), "Iav_r");
-        parameters["Iav_g"] = Parameter(image->getAverageIntensity().r(), "Iav_g");
-        parameters["Iav_b"] = Parameter(image->getAverageIntensity().r(), "Iav_b");
+        parameters["Iav_g"] = Parameter(image->getAverageIntensity().g(), "Iav_g");
+        parameters["Iav_b"] = Parameter(image->getAverageIntensity().b(), "Iav_b");
 
         parameters["Lav"] = Parameter(Lav, "Lav");
     };
