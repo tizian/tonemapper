@@ -16,11 +16,11 @@ public:
 
     float *getData() { return (float *) m_pixels.get(); }
 
-    const Color3f &ref(int i, int j) const;
-    Color3f &ref(int i, int j);
+    const Color3f &ref(size_t i, size_t j) const;
+    Color3f &ref(size_t i, size_t j);
 
-    inline int getWidth() const { return m_width; }
-    inline int getHeight() const { return m_height; }
+    inline size_t getWidth() const { return m_width; }
+    inline size_t getHeight() const { return m_height; }
 
     inline Color3f getMean() const { return m_mean; }
     inline float getMinimumLuminance() const { return m_minimumLuminance; }

@@ -113,6 +113,10 @@ struct Color3f {
         return ret;
     }
 
+    friend inline Color3f operator*(float s, const Color3f &c) {
+        return c * s;
+    }
+
     float &operator[](int i) {
         return c[i];
     }

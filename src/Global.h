@@ -1,7 +1,7 @@
 #pragma once
 
 #define YEAR    "2021"
-#define VERSION "1.2dev"
+#define VERSION "2.0.dev"
 
 #include <tinyformat.h>
 

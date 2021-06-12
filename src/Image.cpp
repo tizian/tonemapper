@@ -208,11 +208,11 @@ void Image::save(const std::string &filename) const {
     delete[] rgb8;
 }
 
-const Color3f &Image::ref(int i, int j) const {
+const Color3f &Image::ref(size_t i, size_t j) const {
     return m_pixels[m_width * i + j];
 }
 
-Color3f &Image::ref(int i, int j) {
+Color3f &Image::ref(size_t i, size_t j) {
     return m_pixels[m_width * i + j];
 }
 

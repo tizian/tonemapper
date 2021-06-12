@@ -85,6 +85,10 @@ include_directories(
 add_executable(tonemapper
     "${PROJECT_SOURCE_DIR}/src/Gui.cpp"
     "${PROJECT_SOURCE_DIR}/src/Image.cpp"
+    "${PROJECT_SOURCE_DIR}/src/Tonemap.cpp"
+
+    "${PROJECT_SOURCE_DIR}/src/operators/LinearOperator.cpp"
+    "${PROJECT_SOURCE_DIR}/src/operators/SrgbOperator.cpp"
 
     "${PROJECT_SOURCE_DIR}/src/main.cpp"
 )
