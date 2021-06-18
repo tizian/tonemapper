@@ -11,6 +11,8 @@ public:
     Image(size_t width, size_t height);
     ~Image();
 
+    void precompute();
+
     static Image *load(const std::string &filename);
     void save(const std::string &filename) const;
 
@@ -27,7 +29,6 @@ public:
     inline float getMaximumLuminance() const { return m_maximumLuminance; }
     inline float getMeanLuminance() const { return m_meanLuminance; }
     inline float getLogMeanLuminance() const { return m_logMeanLuminance; }
-    inline float getAutoKeyValue() const { return m_autoKeyValue; }
 
     inline const std::string &getFilename() const { return m_filename; };
     inline void setFilename(const std::string &filename) { m_filename = filename; }
@@ -43,8 +44,7 @@ private:
     float m_minimumLuminance,
           m_maximumLuminance,
           m_meanLuminance,
-          m_logMeanLuminance,
-          m_autoKeyValue;
+          m_logMeanLuminance;
 };
 
 } // Namespace tonemapper

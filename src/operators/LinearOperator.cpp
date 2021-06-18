@@ -6,9 +6,9 @@ class LinearOperator : public TonemapOperator {
 public:
     LinearOperator() {
         name = "Linear";
-        description = "Linear operator.";
+        description = "Linear operator."; // TODO: better description
 
-        parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value");
+        parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value.");
     }
 
     virtual Color3f map(const Color3f &c) const {

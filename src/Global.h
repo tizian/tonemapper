@@ -12,10 +12,29 @@
 #define LOG(str, ...)   std::cout << tfm::format(str "\n", ##__VA_ARGS__)
 #define PRINT(str, ...) std::cout << tfm::format(str "\n", ##__VA_ARGS__)
 #define INFO(str, ...)  std::cout << tfm::format("%s(%d): " str "\n", __FILE__, __LINE__, ##__VA_ARGS__)
-#define WARN(str, ...)  std::cout << tfm::format(TERM_COLOR_YELLOW "%s(%d): " str "\n" TERM_COLOR_WHITE, __FILE__, __LINE__, ##__VA_ARGS__)
+#define WARN(str, ...)  std::cout << tfm::format(TERM_COLOR_YELLOW  str "\n" TERM_COLOR_WHITE, ##__VA_ARGS__)
+#define WARN_VERBOSE(str, ...)  std::cout << tfm::format(TERM_COLOR_YELLOW "%s(%d): " str "\n" TERM_COLOR_WHITE, __FILE__, __LINE__, ##__VA_ARGS__)
 #define ERROR(str, ...) throw std::runtime_error(tfm::format(TERM_COLOR_RED "\nError - %s(%d): " str "\n" TERM_COLOR_WHITE, __FILE__, __LINE__, ##__VA_ARGS__))
 
 #define VARLOG(x)           (std::cout << #x << ": " << (x) << std::endl)
 #define VARLOG2(x, y)       (std::cout << #x << ": " << (x) << ", " << #y << ": " << (y) << std::endl)
 #define VARLOG3(x, y, z)    (std::cout << #x << ": " << (x) << ", " << #y << ": " << (y) << ", " << #z << ": " << (z) << std::endl)
 #define VARLOG4(x, y, z, w) (std::cout << #x << ": " << (x) << ", " << #y << ": " << (y) << ", " << #z << ": " << (z) << ", " << #w << ": " << (w) << std::endl)
+
+namespace tonemapper {
+
+enum class ExposureMode {
+    Value = 0,
+    Key,
+    Auto
+};
+
+inline std::string fileExtension(const std::string &filename) {
+    size_t idx = filename.rfind('.');
+    if (idx != std::string::npos) {
+        return filename.substr(idx+1);
+    }
+    return "";
+}
+
+}

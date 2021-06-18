@@ -6,7 +6,7 @@ class SrgbOperator : public TonemapOperator {
 public:
     SrgbOperator() {
         name = "sRGB";
-        description = "sRGB operator.";
+        description = "sRGB operator."; // TODO: better description
     }
 
     virtual Color3f map(const Color3f &c) const {

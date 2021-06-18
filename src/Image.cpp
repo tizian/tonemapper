@@ -129,22 +129,20 @@ Image *loadFromHDR(const std::string &filename) {
 Image *Image::load(const std::string &filename) {
     Image *image = nullptr;
 
-    size_t idx = filename.rfind('.');
-    if (idx != std::string::npos) {
-        std::string extension = filename.substr(idx+1);
-        if (extension == "exr") {
-            image = loadFromEXR(filename);
-        } else if (extension == "hdr") {
-            image = loadFromHDR(filename);
-        } else {
-            ERROR("Image::load(): Invalid file extension in \"%s\". Only \".exr\" or \".hdr\" formats are supported.", filename);
-        }
-    } else {
+    std::string extension = fileExtension(filename);
+    if (extension == "exr") {
+        image = loadFromEXR(filename);
+    } else if (extension == "hdr") {
+        image = loadFromHDR(filename);
+    } else if (extension == "") {
         ERROR("Image::load(): Did not recognize file extension for \"%s\".", filename);
+    } else {
+        ERROR("Image::load(): Invalid file extension in \"%s\". Only \".exr\" or \".hdr\" formats are supported.", filename);
     }
 
     if (image) {
         image->setFilename(filename);
+        image->precompute();
         return image;
     }
 
@@ -154,23 +152,19 @@ Image *Image::load(const std::string &filename) {
 
 void Image::save(const std::string &filename) const {
     std::string out = filename;
-
     bool saveAsJpg;
 
-    size_t idx = filename.rfind('.');
-    if (idx != std::string::npos) {
-        std::string extension = filename.substr(idx+1);
-        if (extension == "jpg") {
-            saveAsJpg = true;
-        } else if (extension == "png") {
-            saveAsJpg = false;
-        } else {
-            ERROR("Image::save(): Invalid file extension in \"%s\". Can only save as either \".png\" or \".jpg\" format.", filename);
-        }
-    } else {
+    std::string extension = fileExtension(filename);
+    if (extension == "jpg") {
+        saveAsJpg = true;
+    } else if (extension == "png") {
+        saveAsJpg = false;
+    } else if (extension == "") {
         // No extension provided, automatically save as .jpg
         saveAsJpg = true;
         out += ".jpg";
+    } else {
+        ERROR("Image::save(): Invalid file extension in \"%s\". Can only save as either \".png\" or \".jpg\" format.", filename);
     }
 
     uint8_t *rgb8 = new uint8_t[3 * m_width * m_height];
@@ -214,6 +208,27 @@ const Color3f &Image::ref(size_t i, size_t j) const {
 
 Color3f &Image::ref(size_t i, size_t j) {
     return m_pixels[m_width * i + j];
+}
+
+void Image::precompute() {
+    const float eps = 1e-8f;
+    size_t N = m_width * m_height;
+    m_logMeanLuminance = 0.f;
+
+    for (size_t i = 0; i < m_height; ++i) {
+        for (size_t j = 0; j < m_width; ++j) {
+            const Color3f &color = ref(i, j);
+            float luminance = color.getLuminance();
+
+            m_logMeanLuminance += std::log(luminance + eps);
+        }
+    }
+
+    /* Eq. (1) in Eq. (1) in "Photographic Tone Reproduction for Digital Images"
+       by Reinhard et al. 2002. divides by N after exponentiating. But this does not
+       give sensible values here. Instead, the whole expression should be equivalent
+       to computing a geometric mean. */
+    m_logMeanLuminance = std::exp(m_logMeanLuminance / N);
 }
 
 } // Namespace tonemapper
