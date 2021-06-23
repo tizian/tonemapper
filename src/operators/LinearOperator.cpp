@@ -6,7 +6,7 @@ class LinearOperator : public TonemapOperator {
 public:
     LinearOperator() {
         name = "Linear";
-        description = "Linear operator."; // TODO: better description
+        description = "Do not apply any processing apart from the most basic gamma correction.";
 
         parameters["Gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value.");
     }

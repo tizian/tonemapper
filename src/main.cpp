@@ -22,6 +22,7 @@ int main(int argc, char **argv) {
     // Values to be set via command line arguments below
 
     bool showHelpText = false;
+    bool helpRequested = false;
 
     TonemapOperator *tm = nullptr;
 
@@ -38,7 +39,9 @@ int main(int argc, char **argv) {
         std::string token(argv[1]);
 
         if (token.compare("--help") == 0) {
-            showHelpText = true;
+            helpRequested = true;
+        } else if (token.compare("--gui") == 0) {
+            useGUI = true;
         } else {
             // Determine which operator should be used
             if (std::find(names.begin(), names.end(), token) != names.end()) {
@@ -55,7 +58,7 @@ int main(int argc, char **argv) {
         std::string extension = fileExtension(token);
 
         if (token.compare("--help") == 0) {
-            showHelpText = true;
+            helpRequested = true;
             break;
         } else if (token.compare("--gui") == 0) {
             useGUI = true;
@@ -112,13 +115,17 @@ int main(int argc, char **argv) {
         gui = new TonemapperGui();
         gui->draw_all();
         gui->set_visible(true);
+        if (inputImages.size() > 0) {
+            gui->setImage(inputImages[0]);
+        }
 
         nanogui::mainloop(1 / 60.f * 1000);
 
         nanogui::shutdown();
     } else {
-
-        if (tm == nullptr) {
+        if (helpRequested) {
+            showHelpText = true;
+        } else if (tm == nullptr) {
             WARN("Need to specify one of the operators as the first argument.");
             showHelpText = true;
         } else if (inputImages.size() == 0) {

@@ -70,6 +70,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
 set_property(TARGET nanogui PROPERTY FOLDER "dependencies")
 add_definitions(${NANOGUI_EXTRA_DEFS})
 
+add_definitions(-DGL_SILENCE_DEPRECATION)
+
 ## INCLUDES
 
 include_directories(
