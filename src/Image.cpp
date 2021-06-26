@@ -103,7 +103,8 @@ Image *loadFromHDR(const std::string &filename) {
 
     Image *result = new Image(width, height);
 
-    channels = std::min(3, channels);    // At most read in 3 channels, without alpha
+    // At most read in 3 channels, without alpha
+    channels = std::min(3, channels);
 
     float *src = data;
     for (int i = 0; i < height; ++i) {
@@ -211,16 +212,23 @@ Color3f &Image::ref(size_t i, size_t j) {
 }
 
 void Image::precompute() {
-    const float eps = 1e-8f;
-    size_t N = m_width * m_height;
     m_logMeanLuminance = 0.f;
 
+    size_t N = 0;
     for (size_t i = 0; i < m_height; ++i) {
         for (size_t j = 0; j < m_width; ++j) {
             const Color3f &color = ref(i, j);
             float luminance = color.getLuminance();
-
-            m_logMeanLuminance += std::log(luminance + eps);
+            if (luminance > 0.f) {
+                /* Be careful here as the log is only defined for non-zero
+                   luminance values.
+                   "Image Processing Techniques" by McReynolds et al. 2005
+                   suggest to alternatively add a small `delta` biasing term to
+                   avoid log(0), but this is not sufficient in case the image
+                   contains many black pixels. */
+                m_logMeanLuminance += std::log(luminance);
+                N++;
+            }
         }
     }
 

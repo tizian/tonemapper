@@ -20,7 +20,6 @@ int main(int argc, char **argv) {
     std::sort(names.begin(), names.end());
 
     // Values to be set via command line arguments below
-
     bool showHelpText = false;
     bool helpRequested = false;
 
@@ -155,17 +154,17 @@ int main(int argc, char **argv) {
             }
             PRINT("");
             PRINT("Available options:");
-            PRINT("--exposure-value   Scale the input image with a factor of 2^Exposure.");
-            PRINT("                   (Default: 0.0");
-            PRINT("--exposure-key     Scale the input image with a key value as described in");
-            PRINT("                   \"Photographic Tone Reproduction for Digital Images\" by");
-            PRINT("                   Reinhard et al. 2002.");
-            PRINT("                   (Default: 0.18");
-            PRINT("--exposure-auto    Auto adjust the input image exposure as proposed in");
-            PRINT("                   \"Perceptual Effects in Real-time Tone Mapping\" by");
-            PRINT("                   Krawczyk et al. 2005.");
-            PRINT("--output-jpg       Write output images in \".jpg\" format.");
-            PRINT("--output-png       Write output images in \".png\" format.");
+            PRINT("  --exposure-value   Scale the input image with a factor of 2^Exposure.");
+            PRINT("                     (Default: 0.0)");
+            PRINT("  --exposure-key     Scale the input image with a key value as described in");
+            PRINT("                     \"Photographic Tone Reproduction for Digital Images\" by");
+            PRINT("                     Reinhard et al. 2002.");
+            PRINT("                     (Default: 0.18)");
+            PRINT("  --exposure-auto    Auto adjust the input image exposure as proposed in");
+            PRINT("                     \"Perceptual Effects in Real-time Tone Mapping\" by");
+            PRINT("                     Krawczyk et al. 2005.");
+            PRINT("  --output-jpg       Write output images in \".jpg\" format.");
+            PRINT("  --output-png       Write output images in \".png\" format.");
             if (tm != nullptr) {
                 PRINT("");
                 PRINT("Available operator specific options:");
@@ -184,7 +183,7 @@ int main(int argc, char **argv) {
 
                     const size_t maxWidth = 60;
                     size_t currentWidth = 0;
-                    std::cout << tfm::format("--%-16s", name);
+                    std::cout << tfm::format("  --%-16s", name);
                     for (size_t i = 0; i < tokens.size(); ++i) {
                         size_t diff = tokens[i].size() + 1;
                         if (currentWidth + diff <= maxWidth) {
@@ -192,18 +191,18 @@ int main(int argc, char **argv) {
                             currentWidth += diff;
                         } else {
                             std::cout << std::endl;
-                            std::cout << "                  ";
+                            std::cout << "                    ";
                             currentWidth = 0;
                         }
                     }
 
                     std::cout << std::endl;
-                    std::cout << "                  ";
+                    std::cout << "                    ";
                     std::cout << tfm::format(" (Default: %s)", kv.second.defaultValue);
                     std::cout << std::endl;
                 }
                 if (tm->parameters.size() == 0) {
-                    PRINT("    None.");
+                    PRINT("  None.");
                 }
             }
             PRINT("");

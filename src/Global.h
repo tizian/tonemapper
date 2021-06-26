@@ -1,6 +1,6 @@
 #pragma once
 
-#define YEAR    "2021"
+#define YEAR    "2022"
 #define VERSION "2.0.dev"
 
 #include <tinyformat.h>
@@ -11,6 +11,7 @@
 
 #define LOG(str, ...)   std::cout << tfm::format(str "\n", ##__VA_ARGS__)
 #define PRINT(str, ...) std::cout << tfm::format(str "\n", ##__VA_ARGS__)
+#define PRINT_(str, ...) std::cout << tfm::format(str, ##__VA_ARGS__)
 #define INFO(str, ...)  std::cout << tfm::format("%s(%d): " str "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define WARN(str, ...)  std::cout << tfm::format(TERM_COLOR_YELLOW  str "\n" TERM_COLOR_WHITE, ##__VA_ARGS__)
 #define WARN_VERBOSE(str, ...)  std::cout << tfm::format(TERM_COLOR_YELLOW "%s(%d): " str "\n" TERM_COLOR_WHITE, __FILE__, __LINE__, ##__VA_ARGS__)
@@ -35,6 +36,14 @@ inline std::string fileExtension(const std::string &filename) {
         return filename.substr(idx+1);
     }
     return "";
+}
+
+inline float lerp(float t, float min, float max) {
+    return min + t * (max - min);
+}
+
+inline float inverseLerp(float v, float min, float max) {
+    return (v - min) / (max - min);
 }
 
 }

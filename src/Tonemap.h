@@ -33,7 +33,6 @@ struct Parameter {
 typedef std::map<std::string, Parameter> ParameterMap;
 
 class Image;
-class GLShader;
 
 class TonemapOperator {
 public:
@@ -50,10 +49,11 @@ public:
     virtual Color3f map(const Color3f &c) const = 0;
 
 public:
-    ParameterMap        parameters;
-    std::string         name;
-    std::string         description;
-    GLShader  *shader = nullptr;
+    ParameterMap parameters;
+    std::string  name;
+    std::string  description;
+    std::string  vertexShader;
+    std::string  fragmentShader;
 
 public:
     typedef std::function<TonemapOperator *()> Constructor;

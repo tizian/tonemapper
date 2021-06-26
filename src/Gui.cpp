@@ -1,6 +1,7 @@
 #include <Gui.h>
 
 #include <Image.h>
+#include <Tonemap.h>
 
 #include <nanogui/button.h>
 #include <nanogui/icons.h>
@@ -8,17 +9,37 @@
 #include <nanogui/layout.h>
 #include <nanogui/messagedialog.h>
 #include <nanogui/opengl.h>
+#include <nanogui/progressbar.h>
+#include <nanogui/popupbutton.h>
 #include <nanogui/renderpass.h>
 #include <nanogui/shader.h>
+#include <nanogui/slider.h>
+#include <nanogui/textbox.h>
 #include <nanogui/window.h>
+#include <nanogui/vscrollpanel.h>
+
+#include <thread>
 
 namespace tonemapper {
 
 using namespace nanogui;
 
 TonemapperGui::TonemapperGui()
-    : nanogui::Screen(Vector2i(800, 600), "", true, false) {
-    using namespace nanogui;
+    : nanogui::Screen(Vector2i(1280, 720), "", true, false) {
+    m_exposureModeIndex = 0;
+    m_tonemapOperatorIndex = 0;
+
+    // Instantiate all operators
+    std::vector<std::string> operatorNames;
+    for (auto const& kv: *TonemapOperator::constructors) {
+        operatorNames.push_back(kv.first);
+    }
+    std::sort(operatorNames.begin(), operatorNames.end());
+
+    m_operators = std::vector<TonemapOperator *>(operatorNames.size());
+    for (size_t i = 0; i < operatorNames.size(); ++i) {
+        m_operators[i] = TonemapOperator::create(operatorNames[i]);
+    }
 
     // Setup display
     m_renderPass = new RenderPass({ this });
@@ -26,67 +47,6 @@ TonemapperGui::TonemapperGui()
     m_renderPass->set_clear_color(0, Color(50, 50, 60, 255));
 
     glfwSetWindowPos(glfw_window(), 50, 100);
-
-    m_shader = new Shader(
-        m_renderPass,
-
-        "Image Preview",
-
-        /* Vertex shader */
-        R"(
-        #version 330
-
-        in vec2 position;
-        out vec2 uv;
-
-        void main() {
-            gl_Position = vec4(position.x*2-1, position.y*2-1, 0.0, 1.0);
-            uv = vec2(position.x, 1-position.y);
-        })",
-
-        /* Fragment shader */
-        R"(
-
-        #version 330
-        out vec4 out_color;
-        uniform sampler2D source;
-        in vec2 uv;
-
-        float toSRGB(float value) {
-            if (value < 0.0031308)
-                return 12.92 * value;
-            return 1.055 * pow(value, 0.41666) - 0.055;
-        }
-
-        void main() {
-            float scale = 1.0;
-            vec4 color = texture(source, uv);
-            //vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
-            color *= scale;
-            out_color = vec4(toSRGB(color.r), toSRGB(color.g), toSRGB(color.b), 1);
-        })"
-    );
-
-    uint32_t indices[3*2] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
-    float positions[2*4] = {
-        0.f, 0.f,
-        1.f, 0.f,
-        1.f, 1.f,
-        0.f, 1.f
-    };
-
-    m_shader->set_buffer("indices", VariableType::UInt32, {3*2}, indices);
-    m_shader->set_buffer("position", VariableType::Float32, {4, 2}, positions);
-
-
-
-
-
-
 
     // Setup GUI
     auto ctx = nvg_context();
@@ -126,8 +86,9 @@ TonemapperGui::TonemapperGui()
     openButton->set_callback([&] {
         std::string filename = file_dialog({ {"exr", "OpenEXR"}, {"hdr", "Radiance RGBE"} }, false);
         if (filename != "") {
-            VARLOG(filename);
+            PRINT_("Read image \"%s\" ..", filename);
             setImage(filename);
+            PRINT(" done.");
         }
     });
 
@@ -137,28 +98,35 @@ TonemapperGui::TonemapperGui()
     m_saveButton->set_callback([&] {
         std::string filename = file_dialog({ {"jpg", "JPEG"}, {"png", "Portable Network Graphics"} }, true);
         if (m_image && filename != "") {
-        //     m_saveWindow = new Window(this, "Saving tonemapped image..");
-        //     m_saveWindow->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Middle, 10, 10));
-        //     m_saveWindow->setModal(true);
-        //     m_saveWindow->setFixedWidth(300);
-        //     m_saveWindow->setVisible(true);
+            m_saveWindow = new Window(this, "Saving tonemapped image ..");
+            m_saveWindow->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Middle, 10, 10));
+            m_saveWindow->set_modal(true);
+            m_saveWindow->set_fixed_width(300);
+            m_saveWindow->set_visible(true);
 
-        //     auto panel = new Widget(m_saveWindow);
-        //     panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 10, 15));
+            auto panel = new Widget(m_saveWindow);
+            panel->set_layout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 10, 15));
 
-        //     m_saveWindow->center();
-        //     m_saveWindow->requestFocus();
-        //     m_progressBar = new ProgressBar(panel);
-        //     m_progressBar->setFixedWidth(200);
+            m_saveWindow->center();
+            m_saveWindow->request_focus();
+            m_saveProgressBar = new ProgressBar(panel);
+            m_saveProgressBar->set_fixed_width(200);
 
-        //     performLayout(nvgContext());
-
-        //     m_saveThread = new std::thread([&, filename]{
-        //         m_image->saveAsPNG(filename, m_tonemapOperators[m_tonemapIndex], m_exposure, &m_progress);
-        //     });
+            m_saveThread = new std::thread([&, filename]{
+                PRINT_("Save image \"%s\" ..", filename);
+                Image *out = new Image(m_image->getWidth(), m_image->getHeight());
+                m_saveProgress = 0.f;
+                m_operators[m_tonemapOperatorIndex]->process(m_image, out, m_exposure, &m_saveProgress);
+                out->save(filename);
+                m_saveProgress = -1.f;
+                delete out;
+                PRINT(" done.");
+            });
         }
     });
     m_saveButton->set_enabled(false);
+
+    setExposureMode(m_exposureModeIndex);
 
     perform_layout(ctx);
 
@@ -202,6 +170,271 @@ void TonemapperGui::setImage(const std::string &filename) {
         nanogui::Texture::InterpolationMode::Nearest);
 
     m_shader->set_texture("source", m_texture);
+
+    setExposureMode(m_exposureModeIndex);
+}
+
+void TonemapperGui::setExposureMode(int index) {
+    m_exposureModeIndex = index;
+
+    if (m_exposureLabel) {
+        m_window->remove_child(m_exposureLabel);
+    }
+
+    m_exposureLabel = new Label(m_window, "Exposure mode", "sans-bold");
+
+    if (m_exposurePopupButton) {
+        m_window->remove_child(m_exposurePopupButton);
+    }
+
+    std::vector<std::string> exposureNames{"Manual", "Key Value", "Auto"};
+    std::vector<std::string> exposureDescriptions{
+        "Manual Mode\n\nScale the input image with a factor of 2^Exposure.",
+        "Key Value mode\n\nScale the input image with a key value as described in \"Photographic Tone Reproduction for Digital Images\" by Reinhard et al. 2002.",
+        "Auto mode\n\nAuto adjust the input image exposure as proposed in \"Perceptual Effects in Real-time Tone Mapping\" by Krawczyk et al. 2005."
+    };
+
+    m_exposurePopupButton = new PopupButton(m_window);
+    m_exposurePopup = m_exposurePopupButton->popup();
+    m_exposurePopup->set_width(130);
+    m_exposurePopup->set_height(130);
+
+    auto tmp = new Widget(m_exposurePopup);
+    tmp->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill));
+    auto popopPanel = new Widget(tmp);
+    popopPanel->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
+
+    for (int i = 0; i < 3; ++i) {
+        auto button = new Button(popopPanel, exposureNames[i]);
+        button->set_tooltip(exposureDescriptions[i]);
+        button->set_flags(Button::RadioButton);
+        button->set_callback([&, i] {
+            m_exposurePopup->set_visible(false);
+            setExposureMode(i);
+        });
+    }
+    m_exposurePopupButton->set_caption(exposureNames[index]);
+    m_exposurePopupButton->set_tooltip(exposureDescriptions[index]);
+
+    if (m_exposureWidget) {
+        m_window->remove_child(m_exposureWidget);
+    }
+
+    m_exposureWidget = new Widget(m_window);
+    m_exposureWidget->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
+
+    auto *panel = new Widget(m_exposureWidget);
+    panel->set_layout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 0));
+
+    Button *button = nullptr;
+    Slider *slider = nullptr;
+    FloatBox<float> *textBox = nullptr;
+
+    if (index == 0 || index == 1) {
+        button = new Button(panel, "alpha");
+        button->set_fixed_size(Vector2i(50, 22));
+        button->set_font_size(15);
+
+        if (index == 0) {
+            button->set_tooltip("Exponential scale factor 2^alpha");
+        }
+        else if (index == 1) {
+            button->set_tooltip("Key value exposure adjustment parameter");
+        }
+
+        slider = new Slider(panel);
+        slider->set_fixed_size(Vector2i(140, 22));
+
+        textBox = new FloatBox<float>(panel);
+        textBox->set_fixed_size(Vector2i(50, 22));
+        textBox->number_format("%.2f");
+        textBox->set_font_size(15);
+        textBox->set_alignment(TextBox::Alignment::Right);
+        textBox->set_editable(true);
+    }
+
+    if (index == 0) {
+        m_exposure = 1.f;
+        slider->set_value(0.5f);
+        textBox->set_value(0.f);
+
+        textBox->set_callback([&, slider, textBox](float v) {
+            textBox->set_value(v);
+            m_exposure = std::pow(2.f, v);
+            slider->set_value(v / 20.f + 0.5f);
+        });
+
+        slider->set_callback([&, textBox](float t) {
+            float tmp = (t - 0.5f) * 20.f;
+            m_exposure = std::pow(2.f, tmp);
+            textBox->set_value(tmp);
+        });
+
+        button->set_callback([&, slider, textBox] {
+            m_exposure = 1.f;
+            slider->set_value(0.5f);
+            textBox->set_value(0.f);
+        });
+    } else if (index == 1) {
+        /* See Eq. (1) in "Photographic Tone Reproduction for Digital Images"
+           by Reinhard et al. 2002. */
+        slider->set_value(0.18f);
+        textBox->set_value(0.18f);
+        if (m_image) {
+            m_exposure = 0.18f / m_image->getLogMeanLuminance();
+        }
+
+        textBox->set_callback([&, slider, textBox](float v) {
+            textBox->set_value(v);
+            m_exposure = v / m_image->getLogMeanLuminance();
+            slider->set_value(v);
+        });
+
+        slider->set_callback([&, textBox](float t) {
+            if (m_image) {
+                m_exposure = t / m_image->getLogMeanLuminance();
+            }
+            textBox->set_value(t);
+        });
+
+        button->set_callback([&, slider, textBox] {
+            if (m_image) {
+                m_exposure = 0.18f / m_image->getLogMeanLuminance();
+            }
+            slider->set_value(0.18f);
+            textBox->set_value(0.18f);
+        });
+    } else if (index == 2) {
+        /* See Eqs. (1) and (11) in "Perceptual Effects in Real-time Tone Mapping"
+           by Krawczyk et al. 2005. */
+        if (m_image) {
+            float tmp = 1.03f - 2.f / (2.f + std::log10(m_image->getLogMeanLuminance() + 1.f));
+            m_exposure = tmp / m_image->getLogMeanLuminance();
+        }
+    }
+
+    setTonemapOperator(m_tonemapOperatorIndex);
+}
+
+void TonemapperGui::setTonemapOperator(int index) {
+    m_tonemapOperatorIndex = index;
+
+    uint32_t indices[3*2] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+    float positions[2*4] = {
+        0.f, 0.f,
+        1.f, 0.f,
+        1.f, 1.f,
+        0.f, 1.f
+    };
+
+    TonemapOperator *op = m_operators[m_tonemapOperatorIndex];
+    m_shader = new Shader(m_renderPass, op->name, op->vertexShader, op->fragmentShader);
+    m_shader->set_uniform("exposure", 1.f);
+    for (auto &parameter : op->parameters) {
+        Parameter &p = parameter.second;
+        m_shader->set_uniform(p.uniform, p.defaultValue);
+    }
+
+    m_shader->set_buffer("indices", VariableType::UInt32, {3*2}, indices);
+    m_shader->set_buffer("position", VariableType::Float32, {4, 2}, positions);
+    if (m_image) {
+        m_shader->set_texture("source", m_texture);
+    }
+
+    if (m_tonemapLabel) {
+        m_window->remove_child(m_tonemapLabel);
+    }
+
+    m_tonemapLabel = new Label(m_window, "Tonemapping operator", "sans-bold");
+
+    if (m_tonemapPopupButton) {
+        m_window->remove_child(m_tonemapPopupButton);
+    }
+
+    m_tonemapPopupButton = new PopupButton(m_window);
+    m_tonemapPopupButton->set_tooltip(op->description);
+    m_tonemapPopup = m_tonemapPopupButton->popup();
+    m_tonemapPopup->set_width(220);
+    // m_tonemapPopup->set_height(130);
+
+    auto scroll = new VScrollPanel(m_tonemapPopup);
+    scroll->set_layout(new BoxLayout(Orientation::Vertical));
+    auto popopPanel = new Widget(scroll);
+
+    popopPanel->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
+    // int newIndex = 0;
+    for (size_t i = 0; i < m_operators.size(); ++i) {
+        TonemapOperator *opi = m_operators[i];
+        auto button = new Button(popopPanel, opi->name);
+        button->set_tooltip(opi->description);
+        button->set_flags(Button::RadioButton);
+        button->set_callback([&, i] {
+            m_tonemapPopup->set_visible(false);
+            setTonemapOperator(i);
+        });
+    }
+    m_tonemapPopupButton->set_caption(op->name);
+
+    if (m_tonemapWidget) {
+        m_window->remove_child(m_tonemapWidget);
+    }
+
+    m_tonemapWidget = new Widget(m_window);
+    m_tonemapWidget->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
+
+    for (auto &parameter : op->parameters) {
+        auto &p = parameter.second;
+        if (p.constant) continue;
+
+        auto *windowPanel = new Widget(m_tonemapWidget);
+        windowPanel->set_layout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 0));
+
+        auto button = new Button(windowPanel, parameter.first);
+        button->set_fixed_size(Vector2i(50, 22));
+        button->set_font_size(15);
+        button->set_tooltip(p.description);
+
+        auto *slider = new Slider(windowPanel);
+        slider->set_fixed_size(Vector2i(140, 22));
+        slider->set_value(inverseLerp(p.value, p.minValue, p.maxValue));
+
+        auto textBox = new FloatBox<float>(windowPanel);
+        textBox->set_fixed_size(Vector2i(50, 22));
+        textBox->number_format("%.2f");
+        textBox->set_font_size(15);
+        textBox->set_value(p.value);
+        textBox->set_alignment(TextBox::Alignment::Right);
+        textBox->set_editable(true);
+
+        textBox->set_callback([&, slider, textBox](float v) {
+            p.value = v;
+            textBox->set_value(v);
+            slider->set_value(inverseLerp(p.value, p.minValue, p.maxValue));
+            // refreshGraph();
+        });
+
+        slider->set_callback([&, textBox](float t) {
+            p.value = lerp(t, p.minValue, p.maxValue);
+            textBox->set_value(p.value);
+            // refreshGraph();
+        });
+
+        button->set_callback([&, slider, textBox] {
+            p.value = p.defaultValue;
+            slider->set_value(inverseLerp(p.value, p.minValue, p.maxValue));
+            textBox->set_value(p.defaultValue);
+            // refreshGraph();
+        });
+    }
+
+    // refreshGraph();
+
+    auto ctx = nvg_context();
+    perform_layout(ctx);
 }
 
 bool TonemapperGui::keyboard_event(int key, int scancode, int action, int modifiers) {
@@ -252,12 +485,29 @@ void TonemapperGui::draw_contents() {
 
         m_shader->begin();
         m_shader->draw_array(nanogui::Shader::PrimitiveType::Triangle, 0, 6, true);
+        m_shader->set_uniform("exposure", m_exposure);
+        TonemapOperator *op = m_operators[m_tonemapOperatorIndex];
+        for (auto &parameter : op->parameters) {
+            Parameter &p = parameter.second;
+            m_shader->set_uniform(p.uniform, p.value);
+        }
         m_shader->end();
     }
 
     m_renderPass->end();
 }
 
-
+void TonemapperGui::draw(NVGcontext *ctx) {
+    if (m_saveProgressBar) {
+        m_saveProgressBar->set_value(m_saveProgress);
+        if (m_saveProgress < 0.f) {
+            m_saveThread->join();
+            delete m_saveThread;
+            m_saveProgressBar = nullptr;
+            m_saveWindow->dispose();
+        }
+    }
+    Screen::draw(ctx);
+}
 
 } // Namespace tonemapper
