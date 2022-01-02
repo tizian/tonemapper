@@ -28,8 +28,8 @@ void TonemapOperator::process(const Image *input, Image *output, float exposure,
 
     for (size_t i = 0; i < input->getHeight(); ++i) {
         for (size_t j = 0; j < input->getWidth(); ++j) {
-            const Color3f &color = exposure * input->ref(i, j);
-            output->ref(i, j) = map(color);
+            const Color3f &color = input->ref(i, j);
+            output->ref(i, j) = map(color, exposure);
             if (progress) *progress += delta;
         }
     }

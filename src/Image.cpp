@@ -9,6 +9,8 @@
 #define TINYEXR_IMPLEMENTATION
 #include <tinyexr.h>
 
+#include <limits>
+
 namespace tonemapper {
 
 Image::Image(size_t width, size_t height)
@@ -212,25 +214,39 @@ Color3f &Image::ref(size_t i, size_t j) {
 }
 
 void Image::precompute() {
+    m_minimumLuminance =  std::numeric_limits<float>::infinity();
+    m_maximumLuminance = -std::numeric_limits<float>::infinity();
+    m_meanLuminance = 0.f;
     m_logMeanLuminance = 0.f;
+    m_mean = Color3f(0.f);
+    m_max  = Color3f(-std::numeric_limits<float>::infinity());
 
     size_t N = 0;
     for (size_t i = 0; i < m_height; ++i) {
         for (size_t j = 0; j < m_width; ++j) {
             const Color3f &color = ref(i, j);
-            float luminance = color.getLuminance();
-            if (luminance > 0.f) {
+            m_mean += color;
+            m_max = max(m_max, color);
+
+            float L = luminance(color);
+            m_minimumLuminance = std::min(m_minimumLuminance, L);
+            m_maximumLuminance = std::max(m_maximumLuminance, L);
+            m_meanLuminance += L;
+
+            if (L > 0.f) {
                 /* Be careful here as the log is only defined for non-zero
                    luminance values.
                    "Image Processing Techniques" by McReynolds et al. 2005
                    suggest to alternatively add a small `delta` biasing term to
                    avoid log(0), but this is not sufficient in case the image
                    contains many black pixels. */
-                m_logMeanLuminance += std::log(luminance);
+                m_logMeanLuminance += std::log(L);
                 N++;
             }
         }
     }
+    m_mean /= (m_height * m_width);
+    m_meanLuminance /= (m_height * m_width);
 
     /* Eq. (1) in Eq. (1) in "Photographic Tone Reproduction for Digital Images"
        by Reinhard et al. 2002. divides by N after exponentiating. But this does not

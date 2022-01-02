@@ -173,7 +173,7 @@ struct Color3f {
         return ret;
     }
 
-    Color3f clamp(float low, float high) const {
+    friend Color3f clamp(const Color3f &c, float low, float high) {
         Color3f ret;
         ret[0] = std::max(std::min(c[0], high), low);
         ret[1] = std::max(std::min(c[1], high), low);
@@ -181,19 +181,11 @@ struct Color3f {
         return ret;
     }
 
-    Color3f clampPositive() const {
+    friend Color3f clampPositive(const Color3f &c) {
         Color3f ret;
         ret[0] = std::max(c[0], 0.f);
         ret[1] = std::max(c[1], 0.f);
         ret[2] = std::max(c[2], 0.f);
-        return ret;
-    }
-
-    Color3f clampZeroOne() const {
-        Color3f ret;
-        ret[0] = std::max(std::min(c[0], 1.f), 0.f);
-        ret[1] = std::max(std::min(c[1], 1.f), 0.f);
-        ret[2] = std::max(std::min(c[2], 1.f), 0.f);
         return ret;
     }
 
@@ -210,6 +202,22 @@ struct Color3f {
         for (int i = 0; i < 3; ++i) {
             if (c[i] > ret) ret = c[i];
         }
+        return ret;
+    }
+
+    friend Color3f min(const Color3f &c1, const Color3f &c2) {
+        Color3f ret;
+        ret[0] = std::min(c1[0], c2[0]);
+        ret[1] = std::min(c1[1], c2[1]);
+        ret[2] = std::min(c1[2], c2[2]);
+        return ret;
+    }
+
+    friend Color3f max(const Color3f &c1, const Color3f &c2) {
+        Color3f ret;
+        ret[0] = std::max(c1[0], c2[0]);
+        ret[1] = std::max(c1[1], c2[1]);
+        ret[2] = std::max(c1[2], c2[2]);
         return ret;
     }
 
@@ -236,14 +244,17 @@ struct Color3f {
     float &b() { return c[2]; }
     const float &b() const { return c[2]; }
 
-    float getLuminance() const {
+    friend float luminance(const Color3f &c) {
         return c[0] * 0.212671f + c[1] * 0.715160f + c[2] * 0.072169f;
     }
 
-    inline Color3f clampedValue() {
-        return Color3f(std::max(std::min(c[0], 1.f), 0.f),
-                       std::max(std::min(c[1], 1.f), 0.f),
-                       std::max(std::min(c[2], 1.f), 0.f));
+    friend float luminanceRods(const Color3f &c) {
+        /* From "A Multiscale Model of Adaptation and Spatial Vision for
+           Realistic Image Display" by Pattanaik et al. 1998 */
+        float X = 0.412453f * c.r() + 0.357580f * c.g() + 0.180423f * c.b(),
+              Y = 0.212671f * c.r() + 0.715160f * c.g() + 0.072169f * c.b(),
+              Z = 0.019334f * c.r() + 0.119193f * c.g() + 0.950227f * c.b();
+        return -0.702f * X + 1.039f * Y + 0.433f * Z;
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Color3f &c) {

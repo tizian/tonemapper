@@ -2,6 +2,7 @@
 
 #include <Global.h>
 #include <Color.h>
+#include <Image.h>
 #include <map>
 
 namespace tonemapper {
@@ -20,12 +21,14 @@ struct Parameter {
     Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform, const std::string &description)
         : value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue),
         uniform(uniform), description(description), constant(false) {}
+
     Parameter(float value, const std::string &uniform, const std::string &description)
         : value(value), uniform(uniform), description(description), constant(true) {}
 
     Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform)
         : value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue),
         uniform(uniform), description(""), constant(false) {}
+
     Parameter(float value, const std::string &uniform)
         : value(value), uniform(uniform), description(""), constant(true) {}
 };
@@ -46,7 +49,7 @@ public:
     void process(const Image *input, Image *output, float exposure, float *progress=nullptr) const;
 
     // Actual tonemapping operator
-    virtual Color3f map(const Color3f &c) const = 0;
+    virtual Color3f map(const Color3f &c, float exposure) const = 0;
 
 public:
     ParameterMap parameters;

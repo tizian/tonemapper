@@ -7,6 +7,30 @@
 
 using namespace tonemapper;
 
+void printMultiline(const std::string &text, size_t maxWidth, size_t indentation=0) {
+    std::string buffer;
+    std::stringstream ss(text);
+
+    std::vector<std::string> tokens;
+    while (ss >> buffer) {
+        tokens.push_back(buffer);
+    }
+
+    size_t currentWidth = indentation;
+    std::cout << std::string(indentation, ' ');
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        size_t diff = tokens[i].size() + 1;
+
+        if (currentWidth + diff > maxWidth) {
+            std::cout << std::endl;
+            std::cout << std::string(indentation, ' ');
+            currentWidth = indentation;
+        }
+        std::cout << tokens[i] << " ";
+        currentWidth += diff;
+    }
+}
+
 int main(int argc, char **argv) {
     PRINT("=========================");
     PRINT(" Tonemapper v%s", VERSION);
@@ -32,7 +56,6 @@ int main(int argc, char **argv) {
     bool saveAsJpg = true;
 
     bool useGUI = false;
-
 
     if (argc > 1) {
         std::string token(argv[1]);
@@ -90,7 +113,13 @@ int main(int argc, char **argv) {
                    extension.compare("hdr") == 0) {
             inputImages.push_back(token);
         } else if (tm) {
-            if (tm->parameters.find(token) != tm->parameters.end()) {
+            if (token.compare(0, 2, "--") != 0 || token.length() < 3) {
+                WARN("Option \"%s\" has wrong formatting. (Too short or no proceeding \"--\")", token);
+                break;
+            }
+            std::string param = token.substr(2, token.length() - 1);
+
+            if (tm->parameters.find(param) != tm->parameters.end()) {
                 // This is a valid parameter for the chosen operator
                 if (i+1 >= argc) {
                     WARN("Parameter \"%s\" expects a (float) value following it.", token);
@@ -98,10 +127,10 @@ int main(int argc, char **argv) {
                     break;
                 }
                 float value = atof(argv[i+1]);
-                tm->parameters.at(token).value = value;
+                tm->parameters.at(param).value = value;
                 i++;
             } else {
-                WARN("Unkown option \"%s\"", token);
+                WARN("Unkown option \"%s\"", param);
                 showHelpText = true;
                 break;
             }
@@ -149,8 +178,10 @@ int main(int argc, char **argv) {
                 }
             } else {
                 PRINT("Chosen operator:");
+                // Format while potentially handling multi-line descriptions
                 PRINT("    \"%s\"", tm->name);
-                PRINT("    %s", tm->description);
+                printMultiline(tm->description, 60, 4);
+                PRINT("");
             }
             PRINT("");
             PRINT("Available options:");
@@ -167,7 +198,7 @@ int main(int argc, char **argv) {
             PRINT("  --output-png       Write output images in \".png\" format.");
             if (tm != nullptr) {
                 PRINT("");
-                PRINT("Available operator specific options:");
+                PRINT("Available parameters of chosen operator:");
                 for (auto const &kv : tm->parameters) {
                     // Format parameter while potentially handling
                     // multi-line descriptions.
@@ -230,7 +261,7 @@ int main(int argc, char **argv) {
                     exposure = alpha / img->getLogMeanLuminance();
                 }
 
-                tm->process(img, out, exposure, nullptr);
+                tm->process(img, out, exposure);
 
                 std::string outname = inputImages[i].substr(0, inputImages[i].size() - 4);
                 if (saveAsJpg) {

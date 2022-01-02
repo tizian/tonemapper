@@ -97,13 +97,16 @@ include_directories(
 
 ## EXECUTABLE
 
+file(GLOB_RECURSE OPERATOR_FILES
+    "${PROJECT_SOURCE_DIR}/src/operators/*.cpp"
+)
+
 add_executable(tonemapper
     "${PROJECT_SOURCE_DIR}/src/Gui.cpp"
     "${PROJECT_SOURCE_DIR}/src/Image.cpp"
     "${PROJECT_SOURCE_DIR}/src/Tonemap.cpp"
 
-    "${PROJECT_SOURCE_DIR}/src/operators/LinearOperator.cpp"
-    "${PROJECT_SOURCE_DIR}/src/operators/SrgbOperator.cpp"
+    ${OPERATOR_FILES}
 
     "${PROJECT_SOURCE_DIR}/src/main.cpp"
 )

@@ -24,7 +24,8 @@ public:
     inline size_t getWidth() const { return m_width; }
     inline size_t getHeight() const { return m_height; }
 
-    inline Color3f getMean() const { return m_mean; }
+    inline Color3f getMean()    const { return m_mean; }
+    inline Color3f getMaximum() const { return m_max; }
     inline float getMinimumLuminance() const { return m_minimumLuminance; }
     inline float getMaximumLuminance() const { return m_maximumLuminance; }
     inline float getMeanLuminance() const { return m_meanLuminance; }
@@ -40,7 +41,8 @@ private:
     std::string m_filename;
 
     // Precomputed values used by some operators
-    Color3f m_mean;
+    Color3f m_mean,
+            m_max;
     float m_minimumLuminance,
           m_maximumLuminance,
           m_meanLuminance,

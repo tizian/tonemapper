@@ -6,7 +6,7 @@ class SrgbOperator : public TonemapOperator {
 public:
     SrgbOperator() : TonemapOperator() {
         name = "sRGB";
-        description = "Convert into sRGB color space.";
+        description = R"(Convert into sRGB color space.)";
 
         fragmentShader = R"glsl(
             #version 330
@@ -17,34 +17,44 @@ public:
             uniform float exposure;
 
             float toSRGB(float value) {
-                if (value < 0.0031308)
+                if (value < 0.0031308) {
                     return 12.92 * value;
+                }
                 return 1.055 * pow(value, 0.41666) - 0.055;
             }
 
-            vec4 clampedValue(vec4 color) {
-                color.a = 1.0;
-                return clamp(color, 0.0, 1.0);
-            }
-
             void main() {
-                vec4 color = exposure * texture(source, uv);
-                color = vec4(toSRGB(color.r), toSRGB(color.g), toSRGB(color.b), 1.0);
-                out_color = clampedValue(color);
+                // Fetch color
+                vec3 Cin = exposure * texture(source, uv).rgb;
+
+                // Apply sRGB conversion
+                vec3 Cout = vec3(toSRGB(Cin.r), toSRGB(Cin.g), toSRGB(Cin.b));
+
+                /* Gamma correction is already included in the mapping above
+                   and only clamping is applied. */
+                Cout = clamp(Cout, 0.0, 1.0);
+                out_color = vec4(Cout, 1.0);
             }
         )glsl";
     }
 
-    virtual Color3f map(const Color3f &c) const {
-        Color3f color = c;
-        for (size_t i = 0; i < 3; ++i) {
-            if (color[i] < 0.0031308f) {
-                color[i] = 12.92f * color[i];
-            } else {
-                color[i] = 1.055f * std::pow(color[i], 0.41666f) - 0.055f;
+    Color3f map(const Color3f &color, float exposure) const override {
+        auto toSRGB = [](float value) {
+            if (value < 0.0031308f) {
+                return 12.92f * value;
             }
-        }
-        return color;
+            return 1.055f * std::pow(value, 0.41666f) - 0.055f;
+        };
+
+        // Fetch color
+        Color3f Cin = exposure * color;
+
+        // Apply sRGB conversion
+        Color3f Cout = Color3f(toSRGB(Cin.r()), toSRGB(Cin.g()), toSRGB(Cin.b()));
+
+        /* Gamma correction is already included in the mapping above
+           and only clamping is applied. */
+        return clamp(Cout, 0.f, 1.f);
     }
 };
 

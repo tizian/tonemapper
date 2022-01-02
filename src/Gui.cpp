@@ -86,9 +86,7 @@ TonemapperGui::TonemapperGui()
     openButton->set_callback([&] {
         std::string filename = file_dialog({ {"exr", "OpenEXR"}, {"hdr", "Radiance RGBE"} }, false);
         if (filename != "") {
-            PRINT_("Read image \"%s\" ..", filename);
             setImage(filename);
-            PRINT(" done.");
         }
     });
 
@@ -147,6 +145,7 @@ void TonemapperGui::setImage(const std::string &filename) {
         m_image = nullptr;
     }
 
+    PRINT_("Read image \"%s\" ..", filename);
     m_image = Image::load(filename);
 
     if (m_image) {
@@ -169,12 +168,15 @@ void TonemapperGui::setImage(const std::string &filename) {
         nanogui::Texture::InterpolationMode::Nearest,
         nanogui::Texture::InterpolationMode::Nearest);
 
-    m_shader->set_texture("source", m_texture);
-
     setExposureMode(m_exposureModeIndex);
+    PRINT(" done.");
 }
 
 void TonemapperGui::setExposureMode(int index) {
+    if (!m_image) {
+        return;
+    }
+
     m_exposureModeIndex = index;
 
     if (m_exposureLabel) {
@@ -280,9 +282,7 @@ void TonemapperGui::setExposureMode(int index) {
            by Reinhard et al. 2002. */
         slider->set_value(0.18f);
         textBox->set_value(0.18f);
-        if (m_image) {
-            m_exposure = 0.18f / m_image->getLogMeanLuminance();
-        }
+        m_exposure = 0.18f / m_image->getLogMeanLuminance();
 
         textBox->set_callback([&, slider, textBox](float v) {
             textBox->set_value(v);
@@ -291,32 +291,29 @@ void TonemapperGui::setExposureMode(int index) {
         });
 
         slider->set_callback([&, textBox](float t) {
-            if (m_image) {
-                m_exposure = t / m_image->getLogMeanLuminance();
-            }
+            m_exposure = t / m_image->getLogMeanLuminance();
             textBox->set_value(t);
         });
 
         button->set_callback([&, slider, textBox] {
-            if (m_image) {
-                m_exposure = 0.18f / m_image->getLogMeanLuminance();
-            }
+            m_exposure = 0.18f / m_image->getLogMeanLuminance();
             slider->set_value(0.18f);
             textBox->set_value(0.18f);
         });
     } else if (index == 2) {
         /* See Eqs. (1) and (11) in "Perceptual Effects in Real-time Tone Mapping"
            by Krawczyk et al. 2005. */
-        if (m_image) {
-            float tmp = 1.03f - 2.f / (2.f + std::log10(m_image->getLogMeanLuminance() + 1.f));
-            m_exposure = tmp / m_image->getLogMeanLuminance();
-        }
+        float tmp = 1.03f - 2.f / (2.f + std::log10(m_image->getLogMeanLuminance() + 1.f));
+        m_exposure = tmp / m_image->getLogMeanLuminance();
     }
 
     setTonemapOperator(m_tonemapOperatorIndex);
 }
 
 void TonemapperGui::setTonemapOperator(int index) {
+    if (!m_image) {
+        return;
+    }
     m_tonemapOperatorIndex = index;
 
     uint32_t indices[3*2] = {
@@ -332,6 +329,7 @@ void TonemapperGui::setTonemapOperator(int index) {
     };
 
     TonemapOperator *op = m_operators[m_tonemapOperatorIndex];
+    op->preprocess(m_image);
     m_shader = new Shader(m_renderPass, op->name, op->vertexShader, op->fragmentShader);
     m_shader->set_uniform("exposure", 1.f);
     for (auto &parameter : op->parameters) {
@@ -341,9 +339,7 @@ void TonemapperGui::setTonemapOperator(int index) {
 
     m_shader->set_buffer("indices", VariableType::UInt32, {3*2}, indices);
     m_shader->set_buffer("position", VariableType::Float32, {4, 2}, positions);
-    if (m_image) {
-        m_shader->set_texture("source", m_texture);
-    }
+    m_shader->set_texture("source", m_texture);
 
     if (m_tonemapLabel) {
         m_window->remove_child(m_tonemapLabel);
@@ -359,7 +355,7 @@ void TonemapperGui::setTonemapOperator(int index) {
     m_tonemapPopupButton->set_tooltip(op->description);
     m_tonemapPopup = m_tonemapPopupButton->popup();
     m_tonemapPopup->set_width(220);
-    // m_tonemapPopup->set_height(130);
+    m_tonemapPopup->set_height(300);
 
     auto scroll = new VScrollPanel(m_tonemapPopup);
     scroll->set_layout(new BoxLayout(Orientation::Vertical));
