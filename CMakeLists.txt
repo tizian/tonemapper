@@ -1,5 +1,18 @@
 cmake_minimum_required (VERSION 3.13...3.18)
+
+if(APPLE)
+    execute_process(COMMAND uname -m OUTPUT_VARIABLE TONEMAPPER_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message(STATUS "Building for architecture ${TONEMAPPER_ARCH}")
+endif()
+add_definitions(-D TONEMAPPER_ARCH=\\""${TONEMAPPER_ARCH}"\\")
+set(CMAKE_OSX_ARCHITECTURES ${TONEMAPPER_ARCH})
+
 project(tonemapper)
+
+# Set architecture again for subprojects
+if (APPLE)
+    set(CMAKE_OSX_ARCHITECTURES ${TONEMAPPER_ARCH})
+endif()
 
 ## SETUP
 
