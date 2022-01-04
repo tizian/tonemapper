@@ -8,6 +8,8 @@ set(CMAKE_OSX_ARCHITECTURES ${TONEMAPPER_ARCH})
 
 project(tonemapper)
 
+option(TONEMAPPER_BUILD_GUI "Build the tonemapping GUI?" ON)
+
 # Set architecture again for subprojects
 if (APPLE)
     set(CMAKE_OSX_ARCHITECTURES ${TONEMAPPER_ARCH})
@@ -73,41 +75,69 @@ endif()
 
 ## DEPENDENCIES
 
-# Build NanoGUI
-set(NANOGUI_BUILD_EXAMPLES OFF CACHE BOOL " " FORCE)
-set(NANOGUI_BUILD_SHARED   OFF CACHE BOOL " " FORCE)
-set(NANOGUI_BUILD_PYTHON   OFF CACHE BOOL " " FORCE)
-set(NANOGUI_BACKEND "OpenGL" CACHE STRING " " FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
-set_property(TARGET nanogui PROPERTY FOLDER "dependencies")
-add_definitions(${NANOGUI_EXTRA_DEFS})
+if (TONEMAPPER_BUILD_GUI)
+    add_definitions(-DTONEMAPPER_BUILD_GUI)
 
-add_definitions(-DGL_SILENCE_DEPRECATION)
+    if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/ext/glfw")
+    message(FATAL_ERROR "Dependency repositories (NanoGUI, GLFW, etc.) are missing! "
+        "You probably did not clone the project with --recursive. It is possible to recover by calling \"git submodule update --init --recursive\"")
+    endif()
+
+    # Build NanoGUI
+    set(NANOGUI_BUILD_EXAMPLES OFF CACHE BOOL " " FORCE)
+    set(NANOGUI_BUILD_SHARED   OFF CACHE BOOL " " FORCE)
+    set(NANOGUI_BUILD_PYTHON   OFF CACHE BOOL " " FORCE)
+    set(NANOGUI_BACKEND "OpenGL" CACHE STRING " " FORCE)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
+    set_property(TARGET nanogui PROPERTY FOLDER "dependencies")
+    add_definitions(${NANOGUI_EXTRA_DEFS})
+
+    add_definitions(-DGL_SILENCE_DEPRECATION)
+endif()
 
 ## INCLUDES
 
-include_directories(
+set(TONEMAPPER_INCLUDE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/include ${NANOGUI_EXTRA_INCS}
     ${CMAKE_CURRENT_SOURCE_DIR}/ext/stb
     ${CMAKE_CURRENT_SOURCE_DIR}/ext/tinyexr
     ${CMAKE_CURRENT_SOURCE_DIR}/ext/tinyformat
 )
+if (TONEMAPPER_BUILD_GUI)
+    set(TONEMAPPER_INCLUDE_FILES
+        ${TONEMAPPER_INCLUDE_FILES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/include
+        ${NANOGUI_EXTRA_INCS}
+    )
+endif()
+
+include_directories(
+    ${TONEMAPPER_INCLUDE_FILES}
+)
 
 ## EXECUTABLE
 
-file(GLOB_RECURSE OPERATOR_FILES
+set(TONEMAPPER_SOURCE_FILES
+    ${PROJECT_SOURCE_DIR}/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/Image.cpp
+    ${PROJECT_SOURCE_DIR}/src/Tonemap.cpp
+)
+if (TONEMAPPER_BUILD_GUI)
+    set(TONEMAPPER_SOURCE_FILES
+        ${TONEMAPPER_SOURCE_FILES}
+        ${PROJECT_SOURCE_DIR}/src/Gui.cpp
+    )
+endif()
+
+file(GLOB_RECURSE TONEMAPPER_OPERATOR_FILES
     "${PROJECT_SOURCE_DIR}/src/operators/*.cpp"
 )
 
 add_executable(tonemapper
-    "${PROJECT_SOURCE_DIR}/src/Gui.cpp"
-    "${PROJECT_SOURCE_DIR}/src/Image.cpp"
-    "${PROJECT_SOURCE_DIR}/src/Tonemap.cpp"
-
-    ${OPERATOR_FILES}
-
-    "${PROJECT_SOURCE_DIR}/src/main.cpp"
+    ${TONEMAPPER_SOURCE_FILES}
+    ${TONEMAPPER_OPERATOR_FILES}
 )
 
-target_link_libraries(tonemapper nanogui ${NANOGUI_EXTRA_LIBS})
+if (TONEMAPPER_BUILD_GUI)
+    target_link_libraries(tonemapper nanogui ${NANOGUI_EXTRA_LIBS})
+endif()

@@ -4,6 +4,8 @@
 #define VERSION "2.0.dev"
 
 #include <tinyformat.h>
+#include <string>
+#include <vector>
 
 #define TERM_COLOR_RED    "\x1B[31m"
 #define TERM_COLOR_YELLOW "\x1B[33m"
@@ -36,6 +38,34 @@ inline std::string fileExtension(const std::string &filename) {
         return filename.substr(idx+1);
     }
     return "";
+}
+
+inline void printMultiline(const std::string &text,
+                           size_t maxWidth,
+                           size_t indentation=0,
+                           const std::string &firstLine="") {
+    std::string buffer;
+    std::stringstream ss(text);
+
+    std::vector<std::string> tokens;
+    while (ss >> buffer) {
+        tokens.push_back(buffer);
+    }
+
+    size_t currentWidth = indentation;
+    std::cout << firstLine << "";
+    std::cout << std::string(int(indentation) - int(firstLine.size()), ' ');
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        size_t diff = tokens[i].size() + 1;
+
+        if (currentWidth + diff > maxWidth) {
+            std::cout << std::endl;
+            std::cout << std::string(indentation, ' ');
+            currentWidth = indentation;
+        }
+        std::cout << tokens[i] << " ";
+        currentWidth += diff;
+    }
 }
 
 inline float lerp(float t, float min, float max) {

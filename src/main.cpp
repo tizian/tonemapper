@@ -1,33 +1,83 @@
 #include <iostream>
 
-#include <Gui.h>
+#include <Global.h>
 #include <Image.h>
 #include <Tonemap.h>
-#include <nanogui/nanogui.h>
+
+#ifdef TONEMAPPER_BUILD_GUI
+    #include <Gui.h>
+    #include <nanogui/nanogui.h>
+#endif
+
+#include <filesystem>
 
 using namespace tonemapper;
 
-void printMultiline(const std::string &text, size_t maxWidth, size_t indentation=0) {
-    std::string buffer;
-    std::stringstream ss(text);
+std::vector<std::string> names;
 
-    std::vector<std::string> tokens;
-    while (ss >> buffer) {
-        tokens.push_back(buffer);
+void printUsage(char **argv) {
+    PRINT("");
+    PRINT("Usage:");
+    PRINT("* Tonemap a list of images:");
+    PRINT("    %s <options> <list of images (.exr or .hdr format)>", argv[0]);
+#ifdef TONEMAPPER_BUILD_GUI
+    PRINT("* Open GUI:");
+    PRINT("    %s --gui", argv[0]);
+#endif
+    PRINT("* Get more information:");
+    PRINT("    %s --help", argv[0]);
+    PRINT("");
+}
+
+void printHelp(const TonemapOperator *tm) {
+    PRINT("");
+    PRINT("Available options:");
+    PRINT("  --exposure-value  Scale the input image with a factor of 2^Exposure.");
+    PRINT("                    (Default: 0.0)");
+    PRINT("");
+    PRINT("  --exposure-key    Scale the input image with a key value as described in");
+    PRINT("                    \"Photographic Tone Reproduction for Digital Images\" by");
+    PRINT("                    Reinhard et al. 2002.");
+    PRINT("                    (Default: 0.18)");
+    PRINT("");
+    PRINT("  --exposure-auto   Auto adjust the input image exposure as proposed in");
+    PRINT("                    \"Perceptual Effects in Real-time Tone Mapping\" by");
+    PRINT("                    Krawczyk et al. 2005.");
+    PRINT("");
+    PRINT("  --output-jpg      Write output images in \".jpg\" format.");
+    PRINT("");
+    PRINT("  --output-png      Write output images in \".png\" format.");
+    PRINT("");
+
+    if (tm == nullptr) {
+        PRINT("List of available operators:");
+        for (size_t i = 0; i < names.size(); ++i) {
+            PRINT("    \"%s\"", names[i]);
+        }
+    } else {
+        PRINT("Chosen operator:");
+        PRINT("    \"%s\"", tm->name);
+        printMultiline(tm->description, 60, 4);
+        PRINT("");
     }
 
-    size_t currentWidth = indentation;
-    std::cout << std::string(indentation, ' ');
-    for (size_t i = 0; i < tokens.size(); ++i) {
-        size_t diff = tokens[i].size() + 1;
-
-        if (currentWidth + diff > maxWidth) {
-            std::cout << std::endl;
-            std::cout << std::string(indentation, ' ');
-            currentWidth = indentation;
+    if (tm != nullptr) {
+        PRINT("");
+        PRINT("Operator specific parameters:");
+        size_t indentation = 0;
+        for (auto const &kv : tm->parameters) {
+            indentation = std::max(indentation, kv.first.size());
         }
-        std::cout << tokens[i] << " ";
-        currentWidth += diff;
+        indentation += 6;
+
+        for (auto const &kv : tm->parameters) {
+            std::string param = "  --" + kv.first + "  ";
+            printMultiline(kv.second.description, 60, indentation, param);
+            PRINT("\n%s(Default: %s)\n", std::string(indentation, ' '), kv.second.defaultValue);
+        }
+        if (tm->parameters.size() == 0) {
+            PRINT("  None.");
+        }
     }
 }
 
@@ -37,107 +87,97 @@ int main(int argc, char **argv) {
     PRINT(" (c) %s Tizian Zeltner", YEAR);
     PRINT("=========================");
 
-    std::vector<std::string> names;
     for (auto const& kv: *TonemapOperator::constructors) {
         names.push_back(kv.first);
     }
     std::sort(names.begin(), names.end());
 
-    // Values to be set via command line arguments below
-    bool showHelpText = false;
-    bool helpRequested = false;
-
-    TonemapOperator *tm = nullptr;
-
-    ExposureMode exposureMode = ExposureMode::Value;
-    float exposureInput = 0.f;
-
     std::vector<std::string> inputImages;
-    bool saveAsJpg = true;
+    std::vector<std::string> additionalTokens;
+    TonemapOperator *tm       = nullptr;
+    ExposureMode exposureMode = ExposureMode::Value;
+    float exposureInput       = 0.f;
+    bool saveAsJpg            = true;
+    bool openGUI              = false;
+    bool showHelp             = false;
 
-    bool useGUI = false;
+    std::vector<std::string> warnings;
+    std::vector<std::string> warningsGUI;
 
-    if (argc > 1) {
-        std::string token(argv[1]);
-
-        if (token.compare("--help") == 0) {
-            helpRequested = true;
-        } else if (token.compare("--gui") == 0) {
-            useGUI = true;
-        } else {
-            // Determine which operator should be used
-            if (std::find(names.begin(), names.end(), token) != names.end()) {
-                tm = TonemapOperator::create(token);
-            } else {
-                WARN("Unkown operator \"%s\"", token);
-                showHelpText = true;
-            }
-        }
+    if (argc == 1) {
+        printUsage(argv);
+        return 0;
     }
 
-    for (int i = 2; i < argc; ++i) {
+    for (int i = 1; i < argc; ++i) {
         std::string token(argv[i]);
         std::string extension = fileExtension(token);
 
         if (token.compare("--help") == 0) {
-            helpRequested = true;
-            break;
+            showHelp = true;
         } else if (token.compare("--gui") == 0) {
-            useGUI = true;
-            break;
+#if TONEMAPPER_BUILD_GUI
+            openGUI = true;
+#endif
         } else if (token.compare("--exposure-value") == 0) {
             exposureMode = ExposureMode::Value;
-            if (i+1 >= argc) {
-                WARN("Parameter \"exposure-value\" expects a (float) value following it.");
-                showHelpText = true;
-                break;
+            if (i + 1 >= argc) {
+                warnings.push_back("Parameter \"exposure-value\" expects a float value following it.");
+            } else {
+                exposureInput = atof(argv[i + 1]);
+                i++;
             }
-            exposureInput = atof(argv[i+1]);
-            i++;
         } else if (token.compare("--exposure-key") == 0) {
             exposureMode = ExposureMode::Key;
-            if (i+1 >= argc) {
-                WARN("Parameter \"exposure-key\" expects a (float) value following it.");
-                showHelpText = true;
-                break;
+            if (i + 1 >= argc) {
+                warnings.push_back("Parameter \"exposure-key\" expects a float value following it.");
+            } else {
+                exposureInput = atof(argv[i + 1]);
+                i++;
             }
-            exposureInput = atof(argv[i+1]);
-            i++;
         } else if (token.compare("--exposure-auto") == 0) {
             exposureMode = ExposureMode::Auto;
         } else if (token.compare("--output-jpg") == 0) {
             saveAsJpg = true;
         } else if (token.compare("--output-png") == 0) {
             saveAsJpg = false;
+        } else if (token.compare("--operator") == 0) {
+            // Determine which operator should be used
+            if (i + 1 >= argc) {
+                warnings.push_back("Parameter \"operator\" expects a string following it.");
+            } else {
+                std::string operatorName = argv[i + 1];
+                i++;
+                if (std::find(names.begin(), names.end(), operatorName) != names.end()) {
+                    tm = TonemapOperator::create(operatorName);
+                } else {
+                    warnings.push_back("Unknown operator \"" + operatorName + "\"");
+                }
+            }
+
         } else if (extension.compare("exr") == 0 ||
                    extension.compare("hdr") == 0) {
-            inputImages.push_back(token);
-        } else if (tm) {
-            if (token.compare(0, 2, "--") != 0 || token.length() < 3) {
-                WARN("Option \"%s\" has wrong formatting. (Too short or no proceeding \"--\")", token);
-                break;
-            }
-            std::string param = token.substr(2, token.length() - 1);
-
-            if (tm->parameters.find(param) != tm->parameters.end()) {
-                // This is a valid parameter for the chosen operator
-                if (i+1 >= argc) {
-                    WARN("Parameter \"%s\" expects a (float) value following it.", token);
-                    showHelpText = true;
-                    break;
-                }
-                float value = atof(argv[i+1]);
-                tm->parameters.at(param).value = value;
-                i++;
+            if (std::filesystem::exists(token)) {
+                inputImages.push_back(token);
             } else {
-                WARN("Unkown option \"%s\"", param);
-                showHelpText = true;
-                break;
+                std::string warning = "Specified input file \"" + token + "\" does not exist.";
+                warnings.push_back(warning);
+                warningsGUI.push_back(warning);
             }
+        } else {
+            additionalTokens.push_back(token);
         }
     }
 
-    if (useGUI) {
+#ifdef TONEMAPPER_BUILD_GUI
+    if (openGUI) {
+        if (warningsGUI.size() > 0) {
+            PRINT("");
+            WARN("%s", warnings[0]);
+            PRINT("");
+            return -1;
+        }
+
         nanogui::ref<TonemapperGui> gui;
         nanogui::init();
         gui = new TonemapperGui();
@@ -147,136 +187,113 @@ int main(int argc, char **argv) {
             gui->setImage(inputImages[0]);
         }
 
-        nanogui::mainloop(1 / 60.f * 1000);
-
+        nanogui::mainloop(1 / 60.f);
         nanogui::shutdown();
-    } else {
-        if (helpRequested) {
-            showHelpText = true;
-        } else if (tm == nullptr) {
-            WARN("Need to specify one of the operators as the first argument.");
-            showHelpText = true;
-        } else if (inputImages.size() == 0) {
-            WARN("Need to specify at least one (.exr or .hdr) input image.");
-            showHelpText = true;
-        }
 
-        if (showHelpText) {
-            PRINT("");
-            PRINT("Usage:");
-            PRINT("* Tonemap a set of images:");
-            PRINT("    %s <operator> <options> <list of images (.exr or .hdr format)>", argv[0]);
-            PRINT("* Get list of options for a specific operator:");
-            PRINT("    %s <operator> --help", argv[0]);
-            PRINT("* Open GUI:");
-            PRINT("    %s --gui", argv[0]);
-            PRINT("");
-            if (tm == nullptr) {
-                PRINT("List of available operators:");
-                for (size_t i = 0; i < names.size(); ++i) {
-                    PRINT("    \"%s\"", names[i]);
-                }
+        return 0;
+    }
+#endif
+
+    if (!tm) {
+        warnings.push_back("Need to specify one tonemapping operator via the \"operator\" option.");
+    }
+    if (inputImages.size() == 0) {
+        warnings.push_back("Need to specify at least one (.exr or .hdr) input image.");
+    }
+
+    if (tm) {
+        int len = additionalTokens.size();
+        for (int i = 0; i < len; ++i) {
+            std::string token = additionalTokens[i];
+            if (token.compare(0, 2, "--") != 0 || token.length() < 3) {
+                warnings.push_back("Operator parameter \"" + token + "\" has wrong formatting. (Too short or no proceeding \"--\")");
             } else {
-                PRINT("Chosen operator:");
-                // Format while potentially handling multi-line descriptions
-                PRINT("    \"%s\"", tm->name);
-                printMultiline(tm->description, 60, 4);
-                PRINT("");
-            }
-            PRINT("");
-            PRINT("Available options:");
-            PRINT("  --exposure-value   Scale the input image with a factor of 2^Exposure.");
-            PRINT("                     (Default: 0.0)");
-            PRINT("  --exposure-key     Scale the input image with a key value as described in");
-            PRINT("                     \"Photographic Tone Reproduction for Digital Images\" by");
-            PRINT("                     Reinhard et al. 2002.");
-            PRINT("                     (Default: 0.18)");
-            PRINT("  --exposure-auto    Auto adjust the input image exposure as proposed in");
-            PRINT("                     \"Perceptual Effects in Real-time Tone Mapping\" by");
-            PRINT("                     Krawczyk et al. 2005.");
-            PRINT("  --output-jpg       Write output images in \".jpg\" format.");
-            PRINT("  --output-png       Write output images in \".png\" format.");
-            if (tm != nullptr) {
-                PRINT("");
-                PRINT("Available parameters of chosen operator:");
-                for (auto const &kv : tm->parameters) {
-                    // Format parameter while potentially handling
-                    // multi-line descriptions.
-                    std::string name = kv.first;
-                    std::string description = kv.second.description;
-                    std::string buffer;
-                    std::stringstream ss(description);
-
-                    std::vector<std::string> tokens;
-                    while (ss >> buffer) {
-                        tokens.push_back(buffer);
+                std::string param = token.substr(2, token.length() - 1);
+                if (tm->parameters.find(param) != tm->parameters.end()) {
+                    if (i + 1 >= len) {
+                        warnings.push_back("Operator parameter \"" + token + "\" expects a float value following it.");
+                    } else {
+                        float value = atof(additionalTokens[i+1].c_str());
+                        tm->parameters.at(param).value = value;
+                        i++;
                     }
-
-                    const size_t maxWidth = 60;
-                    size_t currentWidth = 0;
-                    std::cout << tfm::format("  --%-16s", name);
-                    for (size_t i = 0; i < tokens.size(); ++i) {
-                        size_t diff = tokens[i].size() + 1;
-                        if (currentWidth + diff <= maxWidth) {
-                            std::cout << " " << tokens[i];
-                            currentWidth += diff;
-                        } else {
-                            std::cout << std::endl;
-                            std::cout << "                    ";
-                            currentWidth = 0;
-                        }
-                    }
-
-                    std::cout << std::endl;
-                    std::cout << "                    ";
-                    std::cout << tfm::format(" (Default: %s)", kv.second.defaultValue);
-                    std::cout << std::endl;
-                }
-                if (tm->parameters.size() == 0) {
-                    PRINT("  None.");
+                } else {
+                    warnings.push_back("Unkonwn option \"" + token + "\"");
                 }
             }
-            PRINT("");
-        }
-
-
-        if (tm) {
-            for (size_t i = 0; i < inputImages.size(); ++i) {
-                Image *img = Image::load(inputImages[i]);
-                tm->preprocess(img);
-
-                Image *out = new Image(img->getWidth(), img->getHeight());
-
-                float exposure = 1.f;
-                if (exposureMode == ExposureMode::Value) {
-                    exposure = std::pow(2.f, exposureInput);
-                } else if (exposureMode == ExposureMode::Key) {
-                    /* See Eq. (1) in "Photographic Tone Reproduction for Digital Images"
-                       by Reinhard et al. 2002. */
-                    exposure = exposureInput / img->getLogMeanLuminance();
-                } else {
-                    /* See Eqs. (1) and (11) in "Perceptual Effects in Real-time Tone Mapping"
-                       by Krawczyk et al. 2005. */
-                    float alpha = 1.03f - 2.f / (2.f + std::log10(img->getLogMeanLuminance() + 1.f));
-                    exposure = alpha / img->getLogMeanLuminance();
-                }
-
-                tm->process(img, out, exposure);
-
-                std::string outname = inputImages[i].substr(0, inputImages[i].size() - 4);
-                if (saveAsJpg) {
-                    outname += ".jpg";
-                } else {
-                    outname += ".png";
-                }
-                out->save(outname);
-
-                delete img;
-                delete out;
-            }
-            delete tm;
         }
     }
+
+    if (showHelp || warnings.size() > 0) {
+        printHelp(tm);
+
+        if (warnings.size() > 0) {
+            PRINT("");
+            WARN("%s", warnings[0]);
+            PRINT("");
+            return -1;
+        }
+    } else {
+        PRINT("");
+    }
+
+    PRINT("* Chosen operator: \"%s\"", tm->name);
+    PRINT("* Parameters:");
+    size_t maxLength = 0;
+    for (auto &parameter : tm->parameters) {
+        maxLength = std::max(maxLength, parameter.first.size());
+    }
+    for (auto &parameter : tm->parameters) {
+        auto &p = parameter.second;
+        if (p.constant) continue;
+        size_t spaces = maxLength - parameter.first.size() + 1;
+        PRINT("    %s%s= %.3f", parameter.first, std::string(spaces, ' '), p.value);
+    }
+    PRINT("");
+
+    for (size_t i = 0; i < inputImages.size(); ++i) {
+        PRINT_("* Read \"%s\" .. ", inputImages[i]);
+        Image *img = Image::load(inputImages[i]);
+        PRINT("done.");
+        tm->preprocess(img);
+
+        float exposure = 1.f;
+        if (exposureMode == ExposureMode::Value) {
+            exposure = std::pow(2.f, exposureInput);
+        } else if (exposureMode == ExposureMode::Key) {
+            /* See Eq. (1) in "Photographic Tone Reproduction for Digital Images"
+               by Reinhard et al. 2002. */
+            exposure = exposureInput / img->getLogMeanLuminance();
+        } else {
+            /* See Eqs. (1) and (11) in "Perceptual Effects in Real-time Tone Mapping"
+               by Krawczyk et al. 2005. */
+            float alpha = 1.03f - 2.f / (2.f + std::log10(img->getLogMeanLuminance() + 1.f));
+            exposure = alpha / img->getLogMeanLuminance();
+        }
+
+        Image *out = new Image(img->getWidth(), img->getHeight());
+
+        PRINT_("  Processing %d x %d pixels, exposure = %.2f .. ", img->getWidth(), img->getHeight(), exposure);
+        tm->process(img, out, exposure);
+        PRINT("done.");
+
+        std::string outname = inputImages[i].substr(0, inputImages[i].size() - 4);
+        if (saveAsJpg) {
+            outname += ".jpg";
+        } else {
+            outname += ".png";
+        }
+        PRINT_("  Save \"%s\" .. ", outname);
+        out->save(outname);
+        PRINT("done.");
+
+
+        delete img;
+        delete out;
+    }
+    delete tm;
+
+    PRINT("");
 
     return 0;
 }

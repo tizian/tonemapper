@@ -52,6 +52,12 @@ TonemapperGui::TonemapperGui()
         m_operators[i] = TonemapOperator::create(operatorNames[i]);
     }
 
+    // Set "gamma" operator as default
+    auto it = std::find(operatorNames.begin(), operatorNames.end(), std::string("gamma"));
+    if (it != operatorNames.end()) {
+        m_tonemapOperatorIndex = std::distance(operatorNames.begin(), it);
+    }
+
     // Setup display
     m_renderPass = new RenderPass({ this });
     m_renderPass->set_cull_mode(RenderPass::CullMode::Disabled);
@@ -153,6 +159,7 @@ TonemapperGui::TonemapperGui()
     oss << "Tone Mapper v" << VERSION;
     std::string title = oss.str();
     set_caption(title);
+    PRINT("");
 }
 
 TonemapperGui::~TonemapperGui() {}
@@ -489,6 +496,45 @@ bool TonemapperGui::keyboard_event(int key, int scancode, int action, int modifi
         set_visible(false);
         return true;
     }
+
+    if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+        m_mainWindow->set_visible(!m_mainWindow->visible());
+        m_graphWindow->set_visible(!m_graphWindow->visible());
+        return true;
+    }
+
+    bool center     = false;
+    bool fullscreen = false;
+
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        center = true;
+    }
+
+    if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+        center = true;
+        fullscreen = true;
+    }
+
+    if (center) {
+        m_imageDisplayOffsetX = 0;
+        m_imageDisplayOffsetY = 0;
+    }
+    if (fullscreen) {
+        float scale = std::pow(1.1f, m_imageDisplayScale);
+        Vector2f screenSize = Vector2f(m_screenSize),
+                 imageSize  = scale*Vector2f(m_image->getWidth(),
+                                             m_image->getHeight());
+
+        Vector2f fullScale = screenSize / imageSize;
+        scale *= fullScale.x() < fullScale.y() ? fullScale.x() : fullScale.y();
+        m_imageDisplayScale = std::log(scale) / std::log(1.1f);
+    }
+
+
+    if (fullscreen || center) {
+        return true;
+    }
+
     return false;
 }
 
