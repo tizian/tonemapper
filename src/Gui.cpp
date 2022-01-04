@@ -4,6 +4,7 @@
 #include <Tonemap.h>
 
 #include <nanogui/button.h>
+#include <nanogui/graph.h>
 #include <nanogui/icons.h>
 #include <nanogui/label.h>
 #include <nanogui/layout.h>
@@ -15,17 +16,27 @@
 #include <nanogui/shader.h>
 #include <nanogui/slider.h>
 #include <nanogui/textbox.h>
+#include <nanogui/toolbutton.h>
 #include <nanogui/window.h>
 #include <nanogui/vscrollpanel.h>
 
 #include <thread>
+
+const int SCREEN_WIDTH_DEFAULT  = 1280;
+const int SCREEN_HEIGHT_DEFAULT = 720;
+
+const int MAIN_WINDOW_WIDTH   = 280;
+
+const int GRAPH_WINDOW_WIDTH  = 280;
+const int GRAPH_WINDOW_HEIGHT = 200;
 
 namespace tonemapper {
 
 using namespace nanogui;
 
 TonemapperGui::TonemapperGui()
-    : nanogui::Screen(Vector2i(1280, 720), "", true, false) {
+    : nanogui::Screen(Vector2i(SCREEN_WIDTH_DEFAULT, SCREEN_HEIGHT_DEFAULT), "", true, false) {
+    m_screenSize = Vector2i(SCREEN_WIDTH_DEFAULT, SCREEN_HEIGHT_DEFAULT);
     m_exposureModeIndex = 0;
     m_tonemapOperatorIndex = 0;
 
@@ -56,19 +67,20 @@ TonemapperGui::TonemapperGui()
     layout->set_group_spacing(20);
     layout->set_group_indent(14);
 
-    m_window = new Window(this, "Options");
-    m_window->set_position(Vector2i(25, 15));
-    m_window->set_fixed_width(280);
-    m_window->set_layout(layout);
+    m_mainWindow = new Window(this, "Options");
+    m_mainWindow->set_position(Vector2i(25, 25));
+    m_mainWindow->set_fixed_width(MAIN_WINDOW_WIDTH);
+    m_mainWindow->set_layout(layout);
+    m_mainWindow->set_visible(true);
 
-    auto about = new Button(m_window->button_panel(), "", FA_INFO);
+    auto about = new Button(m_mainWindow->button_panel(), "", FA_INFO);
     about->set_callback([&, ctx] {
         std::ostringstream oss;
         oss << "Tone Mapper v" << VERSION << std::endl
             << std::endl
             << "Copyright (c) " << YEAR << " Tizian Zeltner" << std::endl
             << std::endl
-            << "More information can be found under" << std::endl
+            << "More information can be found at" << std::endl
             << "http://github.com/tizian/tonemapper" << std::endl;
 
         auto dlg = new MessageDialog(this, MessageDialog::Type::Information, "About", oss.str());
@@ -78,9 +90,9 @@ TonemapperGui::TonemapperGui()
         dlg->center();
     });
 
-    new Label(m_window, "Image I/O", "sans-bold");
+    new Label(m_mainWindow, "Image I/O", "sans-bold");
 
-    auto *openButton = new Button(m_window, "Open HDR image", FA_FOLDER_OPEN);
+    auto *openButton = new Button(m_mainWindow, "Open HDR image", FA_FOLDER_OPEN);
     openButton->set_background_color(Color(0, 255, 0, 25));
     openButton->set_tooltip("Open HDR image (.exr or .hdr)");
     openButton->set_callback([&] {
@@ -90,7 +102,7 @@ TonemapperGui::TonemapperGui()
         }
     });
 
-    m_saveButton = new Button(m_window, "Save LDR image", FA_SAVE);
+    m_saveButton = new Button(m_mainWindow, "Save LDR image", FA_SAVE);
     m_saveButton->set_background_color(Color(0, 0, 255, 25));
     m_saveButton->set_tooltip("Save LDR image (.png or .jpg)");
     m_saveButton->set_callback([&] {
@@ -126,8 +138,14 @@ TonemapperGui::TonemapperGui()
 
     setExposureMode(m_exposureModeIndex);
 
-    perform_layout(ctx);
+    m_graphWindow = new Window(this, "Graph");
+    m_graphWindow->set_position(Vector2i(SCREEN_WIDTH_DEFAULT  - 25 - GRAPH_WINDOW_WIDTH,
+                                         SCREEN_HEIGHT_DEFAULT - 25 - GRAPH_WINDOW_HEIGHT));
+    m_graphWindow->set_fixed_size(Vector2i(GRAPH_WINDOW_WIDTH, GRAPH_WINDOW_HEIGHT));
+    m_graphWindow->set_layout(layout);
+    m_graphWindow->set_visible(false);
 
+    perform_layout(ctx);
     draw_all();
     set_visible(true);
 
@@ -152,21 +170,26 @@ void TonemapperGui::setImage(const std::string &filename) {
         m_saveButton->set_enabled(true);
     }
 
-    const int DEFAULT_WIDTH = 1280;
-    m_imageDisplayWidth  = DEFAULT_WIDTH;
-    m_imageDisplayHeight = DEFAULT_WIDTH * m_image->getHeight() / m_image->getWidth();
-    set_size(Vector2i(m_imageDisplayWidth, m_imageDisplayHeight));
+    m_imageDisplayWidth  = SCREEN_WIDTH_DEFAULT;
+    m_imageDisplayHeight = SCREEN_WIDTH_DEFAULT * m_image->getHeight() / m_image->getWidth();
+    m_screenSize = Vector2i(m_imageDisplayWidth, m_imageDisplayHeight);
+    set_size(Vector2i(m_screenSize));
+
 
     m_imageDisplayScale = 0.f;
     m_imageDisplayOffsetX = 0;
     m_imageDisplayOffsetY = 0;
+
+    m_graphWindow->set_position(Vector2i(m_imageDisplayWidth  - 25 - GRAPH_WINDOW_WIDTH,
+                                         m_imageDisplayHeight - 25 - GRAPH_WINDOW_HEIGHT));
 
     m_texture = new nanogui::Texture(
         nanogui::Texture::PixelFormat::RGB,
         nanogui::Texture::ComponentFormat::Float32,
         Vector2i(m_image->getWidth(), m_image->getHeight()),
         nanogui::Texture::InterpolationMode::Nearest,
-        nanogui::Texture::InterpolationMode::Nearest);
+        nanogui::Texture::InterpolationMode::Nearest
+    );
 
     setExposureMode(m_exposureModeIndex);
     PRINT(" done.");
@@ -180,13 +203,13 @@ void TonemapperGui::setExposureMode(int index) {
     m_exposureModeIndex = index;
 
     if (m_exposureLabel) {
-        m_window->remove_child(m_exposureLabel);
+        m_mainWindow->remove_child(m_exposureLabel);
     }
 
-    m_exposureLabel = new Label(m_window, "Exposure mode", "sans-bold");
+    m_exposureLabel = new Label(m_mainWindow, "Exposure mode", "sans-bold");
 
     if (m_exposurePopupButton) {
-        m_window->remove_child(m_exposurePopupButton);
+        m_mainWindow->remove_child(m_exposurePopupButton);
     }
 
     std::vector<std::string> exposureNames{"Manual", "Key Value", "Auto"};
@@ -196,7 +219,7 @@ void TonemapperGui::setExposureMode(int index) {
         "Auto mode\n\nAuto adjust the input image exposure as proposed in \"Perceptual Effects in Real-time Tone Mapping\" by Krawczyk et al. 2005."
     };
 
-    m_exposurePopupButton = new PopupButton(m_window);
+    m_exposurePopupButton = new PopupButton(m_mainWindow);
     m_exposurePopup = m_exposurePopupButton->popup();
     m_exposurePopup->set_width(130);
     m_exposurePopup->set_height(130);
@@ -219,10 +242,10 @@ void TonemapperGui::setExposureMode(int index) {
     m_exposurePopupButton->set_tooltip(exposureDescriptions[index]);
 
     if (m_exposureWidget) {
-        m_window->remove_child(m_exposureWidget);
+        m_mainWindow->remove_child(m_exposureWidget);
     }
 
-    m_exposureWidget = new Widget(m_window);
+    m_exposureWidget = new Widget(m_mainWindow);
     m_exposureWidget->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
 
     auto *panel = new Widget(m_exposureWidget);
@@ -342,17 +365,18 @@ void TonemapperGui::setTonemapOperator(int index) {
     m_shader->set_texture("source", m_texture);
 
     if (m_tonemapLabel) {
-        m_window->remove_child(m_tonemapLabel);
+        m_mainWindow->remove_child(m_tonemapLabel);
     }
 
-    m_tonemapLabel = new Label(m_window, "Tonemapping operator", "sans-bold");
+    m_tonemapLabel = new Label(m_mainWindow, "Tonemapping operator", "sans-bold");
 
     if (m_tonemapPopupButton) {
-        m_window->remove_child(m_tonemapPopupButton);
+        m_mainWindow->remove_child(m_tonemapPopupButton);
     }
 
-    m_tonemapPopupButton = new PopupButton(m_window);
+    m_tonemapPopupButton = new PopupButton(m_mainWindow);
     m_tonemapPopupButton->set_tooltip(op->description);
+
     m_tonemapPopup = m_tonemapPopupButton->popup();
     m_tonemapPopup->set_width(220);
     m_tonemapPopup->set_height(300);
@@ -376,10 +400,10 @@ void TonemapperGui::setTonemapOperator(int index) {
     m_tonemapPopupButton->set_caption(op->name);
 
     if (m_tonemapWidget) {
-        m_window->remove_child(m_tonemapWidget);
+        m_mainWindow->remove_child(m_tonemapWidget);
     }
 
-    m_tonemapWidget = new Widget(m_window);
+    m_tonemapWidget = new Widget(m_mainWindow);
     m_tonemapWidget->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 0, 10));
 
     for (auto &parameter : op->parameters) {
@@ -410,32 +434,57 @@ void TonemapperGui::setTonemapOperator(int index) {
             p.value = v;
             textBox->set_value(v);
             slider->set_value(inverseLerp(p.value, p.minValue, p.maxValue));
-            // refreshGraph();
+            refreshGraph();
         });
 
         slider->set_callback([&, textBox](float t) {
             p.value = lerp(t, p.minValue, p.maxValue);
             textBox->set_value(p.value);
-            // refreshGraph();
+            refreshGraph();
         });
 
         button->set_callback([&, slider, textBox] {
             p.value = p.defaultValue;
             slider->set_value(inverseLerp(p.value, p.minValue, p.maxValue));
             textBox->set_value(p.defaultValue);
-            // refreshGraph();
+            refreshGraph();
         });
     }
 
-    // refreshGraph();
+    refreshGraph();
+
+    auto ctx = nvg_context();
+    perform_layout(ctx);
+}
+
+void TonemapperGui::refreshGraph() {
+    m_graphWindow->set_visible(true);
+
+    if (m_graph) {
+        m_graphWindow->remove_child(m_graph);
+    }
+
+    m_graph = new Graph(m_graphWindow, "Luminance [0, 1]");
+    m_graph->set_footer("Log luminance [-5, 2]");
+    m_graph->set_fixed_height(150);
+
+    size_t res = 50;
+    std::vector<float> values(res);
+    for (size_t i = 0; i < res; ++i) {
+        float t = float(i) / (res - 1),
+              v = std::pow(2.f, 7.f*t - 5.f);
+        values[i] = m_operators[m_tonemapOperatorIndex]->map(Color3f(v), 1.f).r();
+    }
+    m_graph->set_values(values);
 
     auto ctx = nvg_context();
     perform_layout(ctx);
 }
 
 bool TonemapperGui::keyboard_event(int key, int scancode, int action, int modifiers) {
-    if (Screen::keyboard_event(key, scancode, action, modifiers))
+    if (Screen::keyboard_event(key, scancode, action, modifiers)) {
         return true;
+    }
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         set_visible(false);
         return true;
@@ -444,8 +493,9 @@ bool TonemapperGui::keyboard_event(int key, int scancode, int action, int modifi
 }
 
 bool TonemapperGui::mouse_motion_event(const Vector2i &p, const Vector2i &rel, int button, int modifiers) {
-    if (Screen::mouse_motion_event(p, rel, button, modifiers))
+    if (Screen::mouse_motion_event(p, rel, button, modifiers)) {
         return true;
+    }
 
     if (button == 1) {
         m_imageDisplayOffsetX += rel[0];
@@ -456,8 +506,9 @@ bool TonemapperGui::mouse_motion_event(const Vector2i &p, const Vector2i &rel, i
 }
 
 bool TonemapperGui::scroll_event(const Vector2i &p, const Vector2f &rel) {
-    if (Screen::scroll_event(p, rel))
+    if (Screen::scroll_event(p, rel)) {
         return true;
+    }
 
     m_imageDisplayScale += rel[1];
     float minmax = 15.f;
@@ -465,11 +516,26 @@ bool TonemapperGui::scroll_event(const Vector2i &p, const Vector2f &rel) {
     return true;
 }
 
+bool TonemapperGui::resize_event(const Vector2i& screenSizeNew) {
+    Vector2i screenSizeOld = m_screenSize;
+
+    Vector2i graphPos    = m_graphWindow->position(),
+             graphBR     = graphPos + Vector2i(GRAPH_WINDOW_WIDTH, GRAPH_WINDOW_HEIGHT),
+             graphOffset = screenSizeOld - graphBR;
+
+    m_graphWindow->set_position(Vector2i(screenSizeNew.x() - graphOffset.x() - GRAPH_WINDOW_WIDTH,
+                                         screenSizeNew.y() - graphOffset.y() - GRAPH_WINDOW_HEIGHT));
+
+    m_screenSize = screenSizeNew;
+    Screen::resize_event(screenSizeNew);
+    return true;
+}
+
 void TonemapperGui::draw_contents() {
     m_renderPass->resize(framebuffer_size());
     m_renderPass->begin();
 
-    if (m_texture) {
+    if (m_image && m_texture) {
         m_texture->upload((const uint8_t *)m_image->getData());
 
         float scale = m_pixel_ratio * std::pow(1.1f, m_imageDisplayScale);
@@ -503,6 +569,7 @@ void TonemapperGui::draw(NVGcontext *ctx) {
             m_saveWindow->dispose();
         }
     }
+
     Screen::draw(ctx);
 }
 
