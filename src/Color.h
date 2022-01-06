@@ -181,6 +181,14 @@ struct Color3f {
         return ret;
     }
 
+    friend Color3f clamp(const Color3f &c, Color3f low, Color3f high) {
+        Color3f ret;
+        ret[0] = std::max(std::min(c[0], high[0]), low[0]);
+        ret[1] = std::max(std::min(c[1], high[1]), low[1]);
+        ret[2] = std::max(std::min(c[2], high[2]), low[2]);
+        return ret;
+    }
+
     friend Color3f clampPositive(const Color3f &c) {
         Color3f ret;
         ret[0] = std::max(c[0], 0.f);

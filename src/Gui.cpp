@@ -385,7 +385,7 @@ void TonemapperGui::setTonemapOperator(int index) {
     m_tonemapPopupButton->set_tooltip(op->description);
 
     m_tonemapPopup = m_tonemapPopupButton->popup();
-    m_tonemapPopup->set_width(220);
+    m_tonemapPopup->set_width(300);
     m_tonemapPopup->set_height(300);
 
     auto scroll = new VScrollPanel(m_tonemapPopup);
@@ -475,12 +475,15 @@ void TonemapperGui::refreshGraph() {
     m_graph->set_footer("Log luminance [-5, 2]");
     m_graph->set_fixed_height(150);
 
-    size_t res = 50;
+    size_t res = 100;
     std::vector<float> values(res);
     for (size_t i = 0; i < res; ++i) {
         float t = float(i) / (res - 1),
               v = std::pow(2.f, 7.f*t - 5.f);
         values[i] = m_operators[m_tonemapOperatorIndex]->map(Color3f(v), 1.f).r();
+        if (!std::isfinite(values[i])) {
+            values[i] = 0.f;
+        }
     }
     m_graph->set_values(values);
 

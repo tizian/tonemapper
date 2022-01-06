@@ -68,12 +68,27 @@ inline void printMultiline(const std::string &text,
     }
 }
 
-inline float lerp(float t, float min, float max) {
+template <typename T>
+inline T lerp(T t, T min, T max) {
     return min + t * (max - min);
 }
 
-inline float inverseLerp(float v, float min, float max) {
+template <typename T>
+inline T inverseLerp(T v, T min, T max) {
     return (v - min) / (max - min);
+}
+
+template <typename T>
+inline T smoothstep(T edge0, T edge1, T x) {
+    // https://docs.gl/sl4/smoothstep
+    T t = clamp((x - edge0) / (edge1 - edge0), T(0), T(1));
+    return t * t * (T(3) - T(2) * t);
+}
+
+template <typename T>
+inline T step(T edge, T x) {
+    // https://docs.gl/sl4/step
+    return smoothstep(edge, edge, x);
 }
 
 }
