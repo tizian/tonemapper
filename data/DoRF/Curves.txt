@@ -1,0 +1,5 @@
+Data taken from "DorF", the database of camera response functions, provided by
+the Computer Vision Laboratory at Columbia University.
+https://www.cs.columbia.edu/CAVE/software/softlib/dorf.php
+
+See "What is the Space of Camera Response Functions?" by Grossberg and Nayar 2003.

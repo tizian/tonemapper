@@ -68,6 +68,9 @@ void printHelp(const TonemapOperator *tm) {
         for (auto const &kv : tm->parameters) {
             indentation = std::max(indentation, kv.first.size());
         }
+        if (tm->dataDriven) {
+            indentation = std::max(indentation, std::string("file").size());
+        }
         indentation += 6;
 
         for (auto const &kv : tm->parameters) {
@@ -75,9 +78,14 @@ void printHelp(const TonemapOperator *tm) {
             printMultiline(kv.second.description, 60, indentation, param);
             PRINT("\n%s(Default: %s)\n", std::string(indentation, ' '), kv.second.defaultValue);
         }
+        if (tm->dataDriven) {
+            std::string param = "  --file  ";
+            printMultiline("Path to a response function file.", 60, indentation, param);
+        }
         if (tm->parameters.size() == 0) {
             PRINT("  None.");
         }
+        PRINT("");
     }
 }
 
@@ -100,6 +108,8 @@ int main(int argc, char **argv) {
     bool saveAsJpg            = true;
     bool openGUI              = false;
     bool showHelp             = false;
+    std::string operatorKey;
+    std::string rfFilename;
 
     std::vector<std::string> warnings;
     std::vector<std::string> warningsGUI;
@@ -111,7 +121,7 @@ int main(int argc, char **argv) {
 
     for (int i = 1; i < argc; ++i) {
         std::string token(argv[i]);
-        std::string extension = fileExtension(token);
+        std::string extension = std::filesystem::path(token).extension();
 
         if (token.compare("--help") == 0) {
             showHelp = true;
@@ -150,13 +160,14 @@ int main(int argc, char **argv) {
                 i++;
                 if (std::find(names.begin(), names.end(), operatorName) != names.end()) {
                     tm = TonemapOperator::create(operatorName);
+                    operatorKey = operatorName;
                 } else {
                     warnings.push_back("Unknown operator \"" + operatorName + "\"");
                 }
             }
 
-        } else if (extension.compare("exr") == 0 ||
-                   extension.compare("hdr") == 0) {
+        } else if (extension.compare(".exr") == 0 ||
+                   extension.compare(".hdr") == 0) {
             if (std::filesystem::exists(token)) {
                 inputImages.push_back(token);
             } else {
@@ -186,6 +197,9 @@ int main(int argc, char **argv) {
         if (inputImages.size() > 0) {
             gui->setImage(inputImages[0]);
         }
+        if (tm) {
+            gui->setTonemapOperator(operatorKey);
+        }
 
         nanogui::mainloop(1 / 60.f);
         nanogui::shutdown();
@@ -213,8 +227,16 @@ int main(int argc, char **argv) {
                     if (i + 1 >= len) {
                         warnings.push_back("Operator parameter \"" + token + "\" expects a float value following it.");
                     } else {
-                        float value = atof(additionalTokens[i+1].c_str());
+                        float value = atof(additionalTokens[i + 1].c_str());
                         tm->parameters.at(param).value = value;
+                        i++;
+                    }
+                } else if (tm->dataDriven && param.compare("file") == 0) {
+                    if (i + 1 >= len) {
+                        warnings.push_back("Operator parameter \"" + token + "\" expects a string following it.");
+                    } else {
+                        rfFilename = additionalTokens[i + 1];
+                        tm->fromFile(rfFilename);
                         i++;
                     }
                 } else {
@@ -224,18 +246,30 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (showHelp || warnings.size() > 0) {
-        printHelp(tm);
-
-        if (warnings.size() > 0) {
-            PRINT("");
-            WARN("%s", warnings[0]);
-            PRINT("");
-            return -1;
-        }
-    } else {
-        PRINT("");
+    if (tm->dataDriven && rfFilename.compare("") == 0) {
+        warnings.push_back("Operator \"" + operatorKey + "\" requires a filepath (provided via \"--file\") to work.");
     }
+    if (tm->dataDriven && tm->irradiance.size() == 0) {
+        warnings.push_back("");
+    }
+
+
+    if (showHelp) {
+        printHelp(tm);
+        PRINT("");
+        if (warnings.size() > 0) {
+            return 0;
+        }
+    }
+
+    if (warnings.size() > 0) {
+        printHelp(tm);
+        PRINT("");
+        WARN("%s", warnings[0]);
+        PRINT("");
+        return -1;
+    }
+    PRINT("");
 
     PRINT("* Chosen operator: \"%s\"", tm->name);
     PRINT("* Parameters:");
@@ -243,11 +277,18 @@ int main(int argc, char **argv) {
     for (auto &parameter : tm->parameters) {
         maxLength = std::max(maxLength, parameter.first.size());
     }
+    if (tm->dataDriven) {
+        maxLength = std::max(maxLength, std::string("file").size());
+    }
     for (auto &parameter : tm->parameters) {
         auto &p = parameter.second;
         if (p.constant) continue;
         size_t spaces = maxLength - parameter.first.size() + 1;
         PRINT("    %s%s= %.3f", parameter.first, std::string(spaces, ' '), p.value);
+    }
+    if (tm->dataDriven) {
+        size_t spaces = maxLength - std::string("file").size() + 1;
+        PRINT("    %s%s= %.3f", "file", std::string(spaces, ' '), rfFilename);
     }
     PRINT("");
 

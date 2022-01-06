@@ -32,14 +32,6 @@ enum class ExposureMode {
     Auto
 };
 
-inline std::string fileExtension(const std::string &filename) {
-    size_t idx = filename.rfind('.');
-    if (idx != std::string::npos) {
-        return filename.substr(idx+1);
-    }
-    return "";
-}
-
 inline void printMultiline(const std::string &text,
                            size_t maxWidth,
                            size_t indentation=0,
@@ -68,6 +60,23 @@ inline void printMultiline(const std::string &text,
     }
 }
 
+template <typename Predicate>
+size_t findInterval(size_t size, const Predicate &pred) {
+    size_t first = 0,
+           len   = size;
+    while (len > 0) {
+        size_t half   = len >> 1,
+               middle = first + half;
+        if (pred(middle)) {
+            first = middle + 1;
+            len -= half + 1;
+        } else {
+            len = half;
+        }
+    }
+    return std::clamp(first - 1, size_t(0), size - 2);
+}
+
 template <typename T>
 inline T lerp(T t, T min, T max) {
     return min + t * (max - min);
@@ -90,5 +99,7 @@ inline T step(T edge, T x) {
     // https://docs.gl/sl4/step
     return smoothstep(edge, edge, x);
 }
+
+
 
 }

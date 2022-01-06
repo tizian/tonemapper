@@ -40,10 +40,10 @@ class Image;
 class TonemapOperator {
 public:
     TonemapOperator();
-    virtual ~TonemapOperator() {}
+    virtual ~TonemapOperator();
 
     // Set some of the operator parameters based on image data (e.g. mean color)
-    virtual void preprocess(const Image *image) {}
+    virtual void preprocess(const Image *image);
 
     // Process each pixel in the image
     void process(const Image *input, Image *output, float exposure, float *progress=nullptr) const;
@@ -51,12 +51,18 @@ public:
     // Actual tonemapping operator
     virtual Color3f map(const Color3f &c, float exposure) const = 0;
 
+    virtual void fromFile(const std::string &filename);
+
 public:
     ParameterMap parameters;
     std::string  name;
     std::string  description;
     std::string  vertexShader;
     std::string  fragmentShader;
+
+    bool dataDriven = false;
+    std::vector<float> irradiance;
+    std::vector<float> values[3];
 
 public:
     typedef std::function<TonemapOperator *()> Constructor;

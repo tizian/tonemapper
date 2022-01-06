@@ -13,6 +13,7 @@
 #include <tinyexr.h>
 
 #include <limits>
+#include <filesystem>
 
 namespace tonemapper {
 
@@ -135,10 +136,10 @@ Image *loadFromHDR(const std::string &filename) {
 Image *Image::load(const std::string &filename) {
     Image *image = nullptr;
 
-    std::string extension = fileExtension(filename);
-    if (extension == "exr") {
+    std::string extension = std::filesystem::path(filename).extension();
+    if (extension == ".exr") {
         image = loadFromEXR(filename);
-    } else if (extension == "hdr") {
+    } else if (extension == ".hdr") {
         image = loadFromHDR(filename);
     } else if (extension == "") {
         ERROR("Image::load(): Did not recognize file extension for \"%s\".", filename);
@@ -160,10 +161,10 @@ void Image::save(const std::string &filename) const {
     std::string out = filename;
     bool saveAsJpg;
 
-    std::string extension = fileExtension(filename);
-    if (extension == "jpg") {
+    std::string extension = std::filesystem::path(filename).extension();
+    if (extension == ".jpg") {
         saveAsJpg = true;
-    } else if (extension == "png") {
+    } else if (extension == ".png") {
         saveAsJpg = false;
     } else if (extension == "") {
         // No extension provided, automatically save as .jpg
