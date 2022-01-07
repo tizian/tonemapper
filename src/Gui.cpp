@@ -350,14 +350,19 @@ void TonemapperGui::setExposureMode(int index) {
     setTonemapOperator(m_tonemapOperatorIndex);
 }
 
-void TonemapperGui::setTonemapOperator(const std::string &filename) {
-    std::vector<std::string> operatorNames;
-    for (auto const& kv: *TonemapOperator::constructors) {
-        operatorNames.push_back(kv.first);
-    }
-    std::sort(operatorNames.begin(), operatorNames.end());
+void TonemapperGui::setTonemapOperator(const std::string &name) {
+    // Get ordered list of names
+    std::vector<std::string> operatorNames = TonemapOperator::orderedNames();
 
-    auto it = std::find(operatorNames.begin(), operatorNames.end(), filename);
+    // .. and append new operators at the end in case they are not present in that list
+    for (auto const& kv: *TonemapOperator::constructors) {
+        auto it = std::find(operatorNames.begin(), operatorNames.end(), kv.first);
+        if (it == operatorNames.end()) {
+            operatorNames.push_back(kv.first);
+        }
+    }
+
+    auto it = std::find(operatorNames.begin(), operatorNames.end(), name);
     if (it != operatorNames.end()) {
         setTonemapOperator(std::distance(operatorNames.begin(), it));
     }

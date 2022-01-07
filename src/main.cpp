@@ -25,14 +25,17 @@ std::vector<std::string> names;
 void printUsage(char **argv) {
     PRINT("");
     PRINT("Usage:");
-    PRINT("* Tonemap a list of images:");
-    PRINT("    %s <options> <list of images (.exr or .hdr format)>", argv[0]);
 #ifdef TONEMAPPER_BUILD_GUI
     PRINT("* Open GUI:");
-    PRINT("    %s --gui", argv[0]);
+    PRINT("    tonemapper");
+    PRINT("* Tonemap a list of images (without GUI):");
+    PRINT("    tonemapper --no-gui <options> <list of images (.exr or .hdr format)>");
+#else
+    PRINT("* Tonemap a list of images:");
+    PRINT("    tonemapper <options> <list of images (.exr or .hdr format)>");
 #endif
     PRINT("* Get more information:");
-    PRINT("    %s --help", argv[0]);
+    PRINT("    tonemapper --help");
     PRINT("");
 }
 
@@ -54,6 +57,10 @@ void printHelp(const TonemapOperator *tm) {
     PRINT("  --output-jpg      Write output images in \".jpg\" format.");
     PRINT("");
     PRINT("  --output-png      Write output images in \".png\" format.");
+#ifdef TONEMAPPER_BUILD_GUI
+    PRINT("");
+    PRINT("  --no-gui          Do not open the GUI.");
+#endif
     PRINT("");
 
     if (tm == nullptr) {
@@ -119,7 +126,8 @@ int main(int argc, char **argv) {
     ExposureMode exposureMode = ExposureMode::Value;
     float exposureInput       = 0.f;
     bool saveAsJpg            = true;
-    bool openGUI              = false;
+    bool openGUI              = true;
+
     bool showHelp             = false;
     std::string operatorKey;
     std::string rfFilename;
@@ -127,21 +135,15 @@ int main(int argc, char **argv) {
     std::vector<std::string> warnings;
     std::vector<std::string> warningsGUI;
 
-    if (argc == 1) {
-        printUsage(argv);
-        return 0;
-    }
-
     for (int i = 1; i < argc; ++i) {
         std::string token(argv[i]);
         std::string extension = std::filesystem::path(token).extension();
 
         if (token.compare("--help") == 0) {
             showHelp = true;
-        } else if (token.compare("--gui") == 0) {
-#if TONEMAPPER_BUILD_GUI
-            openGUI = true;
-#endif
+            openGUI  = false;
+        } else if (token.compare("--no-gui") == 0) {
+            openGUI = false;
         } else if (token.compare("--exposure-value") == 0) {
             exposureMode = ExposureMode::Value;
             if (i + 1 >= argc) {
@@ -268,6 +270,7 @@ int main(int argc, char **argv) {
     }
 
     if (showHelp) {
+        printUsage(argv);
         printHelp(tm);
         PRINT("");
         if (warnings.size() > 0) {
@@ -276,6 +279,7 @@ int main(int argc, char **argv) {
     }
 
     if (warnings.size() > 0) {
+        printUsage(argv);
         printHelp(tm);
         PRINT("");
         WARN("%s", warnings[0]);

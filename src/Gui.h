@@ -22,7 +22,7 @@ public:
     virtual ~TonemapperGui();
 
     void setImage(const std::string &filename);
-    void setTonemapOperator(const std::string &filename);
+    void setTonemapOperator(const std::string &name);
 
     void setExposureMode(int index);
     void setTonemapOperator(int index);
