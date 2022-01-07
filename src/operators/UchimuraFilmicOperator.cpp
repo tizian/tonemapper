@@ -20,7 +20,7 @@ public:
             curve".)";
 
         /* See also the following desmos graph translated by Romain Guy:
-           https://www.shadertoy.com/view/llXyWr
+           https://www.desmos.com/calculator/gslcdxvipg
            and his shadertoy:
            https://www.shadertoy.com/view/llXyWr */
         fragmentShader = R"glsl(

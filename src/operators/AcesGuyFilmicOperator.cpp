@@ -16,6 +16,8 @@ public:
         description = R"(Curve from "Unreal 3" adapted by to close to the ACES
             curve by Romain Guy)";
 
+        /* See also the following shadertoy by Romain Guy:
+           https://www.shadertoy.com/view/llXyWr */
         fragmentShader = R"glsl(
             #version 330
 

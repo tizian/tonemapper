@@ -14,7 +14,7 @@ namespace tonemapper {
 class ResponseFunctionDataFileOperator : public TonemapOperator {
 public:
     ResponseFunctionDataFileOperator() : TonemapOperator() {
-        name = "Response Function Data File";
+        name = "Response function data file";
         description = R"(Use data-driven curves specified via separate text
             files)";
 
