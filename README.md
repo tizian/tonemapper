@@ -72,7 +72,6 @@ Tonemapper is a an application to compare and apply various tone mapping operato
 
 * **Response function data file**: Data-driven curves from external files, e.g. the "[DoRF](https://www.cs.columbia.edu/CAVE/software/softlib/dorf.php)" project from "[What is the Space of Camera Response Functions?](https://www1.cs.columbia.edu/CAVE/publications/pdfs/Grossberg_CVPR03.pdf)" by Grossberg and Nayar 2003
 
-
 ## Building
 
 Clone the repository recursively all dependencies and use CMake to generate project files for your favourite IDE or build system.
@@ -99,6 +98,11 @@ The following external libraries are used:
 * [tinyexr](https://github.com/syoyo/tinyexr)
 * [stb](https://github.com/nothings/stb)
 * [tinyformat](https://github.com/c42f/tinyformat)
+
+## Older version
+
+This project is based on an outdated older version that is still available under the `version_1` branch.
+
 
 ## License
 
