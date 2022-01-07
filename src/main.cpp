@@ -98,7 +98,7 @@ void printHelp(const TonemapOperator *tm) {
 
 int main(int argc, char **argv) {
     PRINT("=========================");
-    PRINT(" Tonemapper v%s", VERSION);
+    PRINT(" tonemapper v%s", VERSION);
     PRINT(" (c) %s Tizian Zeltner", YEAR);
     PRINT("=========================");
 

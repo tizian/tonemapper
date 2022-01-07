@@ -8,7 +8,7 @@
 #pragma once
 
 #define YEAR    "2022"
-#define VERSION "2.0.dev"
+#define VERSION "2.0.0"
 
 #include <tinyformat.h>
 #include <string>

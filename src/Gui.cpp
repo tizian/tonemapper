@@ -90,7 +90,7 @@ TonemapperGui::TonemapperGui()
     auto about = new Button(m_mainWindow->button_panel(), "", FA_INFO);
     about->set_callback([&, ctx] {
         std::ostringstream oss;
-        oss << "Tone Mapper v" << VERSION << std::endl
+        oss << "tonemapper v" << VERSION << std::endl
             << std::endl
             << "Copyright (c) " << YEAR << " Tizian Zeltner" << std::endl
             << std::endl
@@ -669,10 +669,12 @@ bool TonemapperGui::drop_event(const std::vector<std::string> &filenames) {
         std::string extension = std::filesystem::path(filenames[0]).extension();
         if (extension != ".exr" && extension != ".hdr") {
             auto dlg = new MessageDialog(this, MessageDialog::Type::Warning, "Unsupported image format", "Only EXR (.exr) and HDR (.hdr) image formats are supported currently.");
+            dlg->center();
         } else {
             setImage(filenames[0]);
         }
     }
+    return true;
 }
 
 void TonemapperGui::draw_contents() {
