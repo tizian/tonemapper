@@ -48,22 +48,21 @@ TonemapperGui::TonemapperGui()
     m_exposureModeIndex = 0;
     m_tonemapOperatorIndex = 0;
 
-    // Instantiate all operators
-    std::vector<std::string> operatorNames;
-    for (auto const& kv: *TonemapOperator::constructors) {
-        operatorNames.push_back(kv.first);
-    }
-    std::sort(operatorNames.begin(), operatorNames.end());
+    // Get ordered list of names
+    std::vector<std::string> operatorNames = TonemapOperator::orderedNames();
 
+    // .. and append new operators at the end in case they are not present in that list
+    for (auto const& kv: *TonemapOperator::constructors) {
+        auto it = std::find(operatorNames.begin(), operatorNames.end(), kv.first);
+        if (it == operatorNames.end()) {
+            operatorNames.push_back(kv.first);
+        }
+    }
+
+    // Instantiate all operators
     m_operators = std::vector<TonemapOperator *>(operatorNames.size());
     for (size_t i = 0; i < operatorNames.size(); ++i) {
         m_operators[i] = TonemapOperator::create(operatorNames[i]);
-    }
-
-    // Set "gamma" operator as default
-    auto it = std::find(operatorNames.begin(), operatorNames.end(), std::string("gamma"));
-    if (it != operatorNames.end()) {
-        m_tonemapOperatorIndex = std::distance(operatorNames.begin(), it);
     }
 
     // Setup display

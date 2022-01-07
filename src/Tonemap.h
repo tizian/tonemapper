@@ -77,6 +77,8 @@ public:
     static TonemapOperator *create(const std::string &name);
     static void registerOperator(const std::string &name, const Constructor &constr);
     static std::map<std::string, Constructor> *constructors;
+
+    static std::vector<std::string> orderedNames();
 };
 
 #define REGISTER_OPERATOR(cls, name) \

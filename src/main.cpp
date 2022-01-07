@@ -102,10 +102,16 @@ int main(int argc, char **argv) {
     PRINT(" (c) %s Tizian Zeltner", YEAR);
     PRINT("=========================");
 
+    // Get ordered list of names
+    names = TonemapOperator::orderedNames();
+
+    // .. and append new operators at the end in case they are not present in that list
     for (auto const& kv: *TonemapOperator::constructors) {
-        names.push_back(kv.first);
+        auto it = std::find(names.begin(), names.end(), kv.first);
+        if (it == names.end()) {
+            names.push_back(kv.first);
+        }
     }
-    std::sort(names.begin(), names.end());
 
     std::vector<std::string> inputImages;
     std::vector<std::string> additionalTokens;
@@ -253,13 +259,13 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (tm->dataDriven && rfFilename.compare("") == 0) {
+    if (tm && tm->dataDriven && rfFilename.compare("") == 0) {
         warnings.push_back("Operator \"" + operatorKey + "\" requires a filepath (provided via \"--file\") to work.");
     }
-    if (tm->dataDriven && tm->irradiance.size() == 0) {
+
+    if (tm && tm->dataDriven && tm->irradiance.size() == 0) {
         warnings.push_back("");
     }
-
 
     if (showHelp) {
         printHelp(tm);

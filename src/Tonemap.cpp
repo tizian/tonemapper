@@ -67,4 +67,42 @@ void TonemapOperator::registerOperator(const std::string &name, const Constructo
     (*constructors)[name] = constr;
 }
 
+std::vector<std::string> TonemapOperator::orderedNames() {
+    return {
+        "gamma",
+        "srgb",
+
+        "clamping",
+        "maxdivision",
+        "meanvalue",
+        "exponential",
+        "exponentiation",
+        "logarithmic",
+
+        "tumblin_rushmeier",
+        "schlick",
+        "ward",
+        "ferwerda",
+        "durand_dorsey",
+        "reinhard",
+        "reinhard_extended",
+        "drago",
+        "reinhard_devlin",
+
+        "hejl_burgess_dawson",
+        "aldridge",
+        "hable",
+        "hable_updated",
+        "lottes",
+        "day",
+        "uchimura",
+
+        "aces_hill",
+        "aces_narkowicz",
+        "aces_guy",
+
+        "response_function_data_file",
+    };
+}
+
 } // Namespace tonemapper
