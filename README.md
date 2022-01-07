@@ -6,20 +6,20 @@
 
 Tonemapper is a an application to compare and apply various tone mapping operators...
 
-1. ... either via the command line interface:
+... either via an interactive GUI:
 
 ```
-# Example: apply the "Reinhard" operator with gamma=2.2 to a list of input images
-./tonemapper --operator reinhard --gamma 2.2 <images>
-```
-
-2. ... or via an interactive GUI:
-
-```
-./tonemapper --gui
+./tonemapper
 ```
 
 <img src="/res/screenshot.jpg" width="80%"/>
+
+... or via the command line interface:
+
+```
+# Example: apply the "Reinhard" operator with gamma=2.2 to a list of input images
+./tonemapper --no-gui --operator reinhard --gamma 2.2 <images>
+```
 
 ### Supported file formats:
 
@@ -101,7 +101,7 @@ The following external libraries are used:
 
 ## Older version
 
-This project is based on an outdated older version that is still available under the `version_1` branch.
+This project is based on an older, now outdated version that is archived under the `version_1` branch.
 
 
 ## License
