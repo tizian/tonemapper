@@ -181,21 +181,24 @@ void TonemapperGui::setImage(const std::string &filename) {
     PRINT_("Read image \"%s\" ..", filename);
     m_image = Image::load(filename);
 
+    if (!m_image) {
+        return;
+    }
+
     if (m_image) {
         m_saveButton->set_enabled(true);
     }
 
-    m_imageDisplayWidth  = SCREEN_WIDTH_DEFAULT;
-    m_imageDisplayHeight = SCREEN_WIDTH_DEFAULT * m_image->getHeight() / m_image->getWidth();
-    m_screenSize = Vector2i(m_imageDisplayWidth, m_imageDisplayHeight);
+    m_imageDisplayHeight = SCREEN_HEIGHT_DEFAULT;
+    m_imageDisplayWidth  = SCREEN_HEIGHT_DEFAULT * m_image->getWidth() / m_image->getHeight();
+    m_screenSize = Vector2i(std::max(1280, m_imageDisplayWidth), m_imageDisplayHeight);
     set_size(Vector2i(m_screenSize));
-
 
     m_imageDisplayScale = 0.f;
     m_imageDisplayOffsetX = 0;
     m_imageDisplayOffsetY = 0;
 
-    m_graphWindow->set_position(Vector2i(m_imageDisplayWidth  - 25 - GRAPH_WINDOW_WIDTH,
+    m_graphWindow->set_position(Vector2i(std::max(1280, m_imageDisplayWidth)  - 25 - GRAPH_WINDOW_WIDTH,
                                          m_imageDisplayHeight - 25 - GRAPH_WINDOW_HEIGHT));
 
     m_texture = new nanogui::Texture(
@@ -659,6 +662,17 @@ bool TonemapperGui::resize_event(const Vector2i& screenSizeNew) {
     m_screenSize = screenSizeNew;
     Screen::resize_event(screenSizeNew);
     return true;
+}
+
+bool TonemapperGui::drop_event(const std::vector<std::string> &filenames) {
+    if (filenames.size() > 0) {
+        std::string extension = std::filesystem::path(filenames[0]).extension();
+        if (extension != ".exr" && extension != ".hdr") {
+            auto dlg = new MessageDialog(this, MessageDialog::Type::Warning, "Unsupported image format", "Only EXR (.exr) and HDR (.hdr) image formats are supported currently.");
+        } else {
+            setImage(filenames[0]);
+        }
+    }
 }
 
 void TonemapperGui::draw_contents() {

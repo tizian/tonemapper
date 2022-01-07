@@ -32,6 +32,7 @@ public:
     bool mouse_motion_event(const nanogui::Vector2i &p, const nanogui::Vector2i &rel, int button, int modifiers) override;
     bool scroll_event(const nanogui::Vector2i &p, const nanogui::Vector2f &rel) override;
     bool resize_event(const nanogui::Vector2i& size) override;
+    bool drop_event(const std::vector<std::string> &filenames) override;
 
     void draw_contents() override;
     void draw(NVGcontext *ctx) override;

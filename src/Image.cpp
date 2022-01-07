@@ -149,9 +149,11 @@ Image *Image::load(const std::string &filename) {
     } else if (extension == ".hdr") {
         image = loadFromHDR(filename);
     } else if (extension == "") {
-        ERROR("Image::load(): Did not recognize file extension for \"%s\".", filename);
+        PRINT("");
+        WARN("Image::load(): Did not recognize file extension for \"%s\".", filename);
     } else {
-        ERROR("Image::load(): Invalid file extension in \"%s\". Only \".exr\" or \".hdr\" formats are supported.", filename);
+        PRINT("");
+        WARN("Image::load(): Invalid file extension in \"%s\". Only \".exr\" or \".hdr\" formats are supported.", filename);
     }
 
     if (image) {
@@ -160,7 +162,6 @@ Image *Image::load(const std::string &filename) {
         return image;
     }
 
-    ERROR("Image::load(): Something went wrong when loading \"%s\".", filename);
     return nullptr;
 }
 
@@ -178,7 +179,9 @@ void Image::save(const std::string &filename) const {
         saveAsJpg = true;
         out += ".jpg";
     } else {
-        ERROR("Image::save(): Invalid file extension in \"%s\". Can only save as either \".png\" or \".jpg\" format.", filename);
+        PRINT("");
+        WARN("Image::save(): Invalid file extension in \"%s\". Can only save as either \".png\" or \".jpg\" format.", filename);
+        return;
     }
 
     uint8_t *rgb8 = new uint8_t[3 * m_width * m_height];
@@ -210,7 +213,8 @@ void Image::save(const std::string &filename) const {
     }
 
     if (ret == 0) {
-        ERROR("save(): Could not save file \"%s\"", out);
+        PRINT("");
+        WARN("save(): Could not save file \"%s\"", out);
     }
 
     delete[] rgb8;
