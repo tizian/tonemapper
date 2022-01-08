@@ -170,6 +170,13 @@ if (APPLE AND TONEMAPPER_MACOS_BUNDLE)
         ${TONEMAPPER_SOURCE_FILES}
         ${TONEMAPPER_OPERATOR_FILES}
     )
+elseif (MSVC)
+    set(rcFile ${CMAKE_CURRENT_SOURCE_DIR}/res/tonemapper.rc)
+    add_executable(tonemapper
+        ${rcFile}
+        ${TONEMAPPER_SOURCE_FILES}
+        ${TONEMAPPER_OPERATOR_FILES}
+    )
 else()
     add_executable(tonemapper
         ${TONEMAPPER_SOURCE_FILES}
