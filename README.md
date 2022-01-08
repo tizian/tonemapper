@@ -2,6 +2,8 @@
 
 # tonemapper — A tool for exploring and applying various tonemapping operators.
 
+![CI badge](https://github.com/tizian/tonemapper/actions/workflows/ci.yml/badge.svg)
+
 ## Description
 
 Tonemapper is a an application to compare and apply various tone mapping operators...
