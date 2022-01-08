@@ -34,7 +34,6 @@ const size_t SCREEN_WIDTH_DEFAULT  = 1280;
 const size_t SCREEN_HEIGHT_DEFAULT = 720;
 
 const size_t MAIN_WINDOW_WIDTH   = 280;
-
 const size_t GRAPH_WINDOW_WIDTH  = 280;
 const size_t GRAPH_WINDOW_HEIGHT = 200;
 

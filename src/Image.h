@@ -8,8 +8,9 @@
 #pragma once
 
 #include <Global.h>
-
 #include <Color.h>
+
+#include <memory>
 
 namespace tonemapper {
 

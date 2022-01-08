@@ -8,7 +8,9 @@
 #pragma once
 
 #include <Global.h>
+
 #include <nanogui/screen.h>
+
 #include <thread>
 
 namespace tonemapper {
