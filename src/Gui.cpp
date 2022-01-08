@@ -51,18 +51,14 @@ TonemapperGui::TonemapperGui()
     // Get ordered list of names
     std::vector<std::string> operatorNames = TonemapOperator::orderedNames();
 
-    // .. and append new operators at the end in case they are not present in that list
-    for (auto const& kv: *TonemapOperator::constructors) {
-        auto it = std::find(operatorNames.begin(), operatorNames.end(), kv.first);
-        if (it == operatorNames.end()) {
-            operatorNames.push_back(kv.first);
-        }
-    }
-
     // Instantiate all operators
     m_operators = std::vector<TonemapOperator *>(operatorNames.size());
     for (size_t i = 0; i < operatorNames.size(); ++i) {
-        m_operators[i] = TonemapOperator::create(operatorNames[i]);
+        if (operatorNames[i].compare("") == 0) {
+            m_operators[i] = nullptr;
+        } else {
+            m_operators[i] = TonemapOperator::create(operatorNames[i]);
+        }
     }
 
     // Setup display
@@ -243,11 +239,11 @@ void TonemapperGui::setExposureMode(int index) {
 
     auto tmp = new Widget(m_exposurePopup);
     tmp->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill));
-    auto popopPanel = new Widget(tmp);
-    popopPanel->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
+    auto popupPanel = new Widget(tmp);
+    popupPanel->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
 
     for (int i = 0; i < 3; ++i) {
-        auto button = new Button(popopPanel, exposureNames[i]);
+        auto button = new Button(popupPanel, exposureNames[i]);
         button->set_tooltip(exposureDescriptions[i]);
         button->set_flags(Button::RadioButton);
         button->set_callback([&, i] {
@@ -351,17 +347,7 @@ void TonemapperGui::setExposureMode(int index) {
 }
 
 void TonemapperGui::setTonemapOperator(const std::string &name) {
-    // Get ordered list of names
     std::vector<std::string> operatorNames = TonemapOperator::orderedNames();
-
-    // .. and append new operators at the end in case they are not present in that list
-    for (auto const& kv: *TonemapOperator::constructors) {
-        auto it = std::find(operatorNames.begin(), operatorNames.end(), kv.first);
-        if (it == operatorNames.end()) {
-            operatorNames.push_back(kv.first);
-        }
-    }
-
     auto it = std::find(operatorNames.begin(), operatorNames.end(), name);
     if (it != operatorNames.end()) {
         setTonemapOperator(std::distance(operatorNames.begin(), it));
@@ -418,13 +404,17 @@ void TonemapperGui::setTonemapOperator(int index) {
 
     auto scroll = new VScrollPanel(m_tonemapPopup);
     scroll->set_layout(new BoxLayout(Orientation::Vertical));
-    auto popopPanel = new Widget(scroll);
+    auto popupPanel = new Widget(scroll);
 
-    popopPanel->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
-    // int newIndex = 0;
+    popupPanel->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
     for (size_t i = 0; i < m_operators.size(); ++i) {
         TonemapOperator *opi = m_operators[i];
-        auto button = new Button(popopPanel, opi->name);
+        if (opi == nullptr) {
+            new Label(popupPanel, " ", "sans-bold", 6);
+            continue;
+        }
+
+        auto button = new Button(popupPanel, opi->name);
         button->set_tooltip(opi->description);
         button->set_flags(Button::RadioButton);
         button->set_callback([&, i] {

@@ -68,17 +68,18 @@ void TonemapOperator::registerOperator(const std::string &name, const Constructo
 }
 
 std::vector<std::string> TonemapOperator::orderedNames() {
-    return {
+    // Empty strings translate to spacing in the GUI
+    std::vector<std::string> names = {
         "gamma",
         "srgb",
-
+        "",
         "clamping",
         "maxdivision",
         "meanvalue",
         "exponential",
         "exponentiation",
         "logarithmic",
-
+        "",
         "tumblin_rushmeier",
         "schlick",
         "ward",
@@ -88,7 +89,7 @@ std::vector<std::string> TonemapOperator::orderedNames() {
         "reinhard_extended",
         "drago",
         "reinhard_devlin",
-
+        "",
         "hejl_burgess_dawson",
         "aldridge",
         "hable",
@@ -96,13 +97,29 @@ std::vector<std::string> TonemapOperator::orderedNames() {
         "lottes",
         "day",
         "uchimura",
-
+        "",
         "aces_hill",
         "aces_narkowicz",
         "aces_guy",
-
+        "",
         "response_function_data_file",
     };
+
+    /* In case new operators are added without adding them to the list above,
+       append them at the end. */
+    bool additional = false;
+    for (auto const& kv: *TonemapOperator::constructors) {
+        auto it = std::find(names.begin(), names.end(), kv.first);
+        if (it == names.end()) {
+            if (!additional) {
+                names.push_back("");
+                additional = true;
+            }
+            names.push_back(kv.first);
+        }
+    }
+
+    return names;
 }
 
 } // Namespace tonemapper

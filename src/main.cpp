@@ -20,8 +20,6 @@
 
 using namespace tonemapper;
 
-std::vector<std::string> names;
-
 void printUsage(char **argv) {
     PRINT("");
     PRINT("Usage:");
@@ -63,10 +61,16 @@ void printHelp(const TonemapOperator *tm) {
 #endif
     PRINT("");
 
+    std::vector<std::string> operatorNames = TonemapOperator::orderedNames();
+
     if (tm == nullptr) {
         PRINT("List of available operators:");
-        for (size_t i = 0; i < names.size(); ++i) {
-            PRINT("    \"%s\"", names[i]);
+        for (size_t i = 0; i < operatorNames.size(); ++i) {
+            if (operatorNames[i].compare("") == 0) {
+                PRINT("");
+            } else {
+                PRINT("    \"%s\"", operatorNames[i]);
+            }
         }
     } else {
         PRINT("Chosen operator:");
@@ -109,16 +113,7 @@ int main(int argc, char **argv) {
     PRINT(" (c) %s Tizian Zeltner", YEAR);
     PRINT("=========================");
 
-    // Get ordered list of names
-    names = TonemapOperator::orderedNames();
-
-    // .. and append new operators at the end in case they are not present in that list
-    for (auto const& kv: *TonemapOperator::constructors) {
-        auto it = std::find(names.begin(), names.end(), kv.first);
-        if (it == names.end()) {
-            names.push_back(kv.first);
-        }
-    }
+    std::vector<std::string> operatorNames = TonemapOperator::orderedNames();
 
     std::vector<std::string> inputImages;
     std::vector<std::string> additionalTokens;
@@ -173,7 +168,7 @@ int main(int argc, char **argv) {
             } else {
                 std::string operatorName = argv[i + 1];
                 i++;
-                if (std::find(names.begin(), names.end(), operatorName) != names.end()) {
+                if (std::find(operatorNames.begin(), operatorNames.end(), operatorName) != operatorNames.end()) {
                     tm = TonemapOperator::create(operatorName);
                     operatorKey = operatorName;
                 } else {
