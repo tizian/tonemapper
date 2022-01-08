@@ -9,11 +9,17 @@ message(STATUS "tonemapper v${VERSION}")
 
 if (APPLE)
     execute_process(COMMAND uname -m OUTPUT_VARIABLE TONEMAPPER_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
-    message(STATUS "tonemapper: using architecture ${TONEMAPPER_ARCH}")
 endif()
-set(CMAKE_OSX_ARCHITECTURES ${TONEMAPPER_ARCH})
 
 project(tonemapper)
+
+if (APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "")
+    set(CMAKE_OSX_ARCHITECTURES ${TONEMAPPER_ARCH})
+endif()
+
+if (APPLE)
+    message(STATUS "tonemapper: using macOS architecture ${CMAKE_OSX_ARCHITECTURES}")
+endif()
 
 option(TONEMAPPER_BUILD_GUI    "Build the tonemapping GUI?"    ON)
 option(TONEMAPPER_MACOS_BUNDLE "Create a .app bundle on macOS" ON)
@@ -28,13 +34,6 @@ endif()
 
 if (APPLE AND TONEMAPPER_MACOS_BUNDLE)
     message(STATUS "tonemapper: build macOS .app bundle")
-endif()
-
-
-
-# Set architecture again for subprojects
-if (APPLE)
-    set(CMAKE_OSX_ARCHITECTURES ${TONEMAPPER_ARCH})
 endif()
 
 ## SETUP
@@ -116,6 +115,7 @@ if (TONEMAPPER_BUILD_GUI)
     set_property(TARGET nanogui PROPERTY FOLDER "dependencies")
     add_definitions(${NANOGUI_EXTRA_DEFS})
 
+    add_compile_options(${NANOGUI_NATIVE_FLAGS})
     add_definitions(-DGL_SILENCE_DEPRECATION)
 endif()
 
