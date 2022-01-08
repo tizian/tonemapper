@@ -185,7 +185,7 @@ void TonemapperGui::setImage(const std::string &filename) {
 
     m_imageDisplayHeight = SCREEN_HEIGHT_DEFAULT;
     m_imageDisplayWidth  = SCREEN_HEIGHT_DEFAULT * int(m_image->getWidth() / m_image->getHeight());
-    m_screenSize = Vector2i(std::max(1280, m_imageDisplayWidth), m_imageDisplayHeight);
+    m_screenSize = Vector2i(std::max(int(SCREEN_WIDTH_DEFAULT), m_imageDisplayWidth), m_imageDisplayHeight);
     set_size(Vector2i(m_screenSize));
 
     m_imageDisplayScale = 0.f;
@@ -602,8 +602,8 @@ bool TonemapperGui::keyboard_event(int key, int scancode, int action, int modifi
     if (fullscreen) {
         float scale = std::pow(1.1f, m_imageDisplayScale);
         Vector2f screenSize = Vector2f(m_screenSize),
-                 imageSize  = scale*Vector2f(float(m_image->getWidth()),
-                                             float(m_image->getHeight()));
+                 imageSize  = scale*Vector2f(float(m_imageDisplayWidth),
+                                             float(m_imageDisplayHeight));
 
         Vector2f fullScale = screenSize / imageSize;
         scale *= fullScale.x() < fullScale.y() ? fullScale.x() : fullScale.y();
