@@ -7,6 +7,13 @@
 
 #pragma once
 
+#ifndef NOMINMAX
+    #define NOMINMAX
+#endif
+#ifndef NOGDI
+    #define NOGDI
+#endif
+
 #include <tinyformat.h>
 #include <string>
 #include <vector>
@@ -21,6 +28,9 @@
 #define INFO(str, ...)  std::cout << tfm::format("%s(%d): " str "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define WARN(str, ...)  std::cout << tfm::format(TERM_COLOR_YELLOW  str "\n" TERM_COLOR_WHITE, ##__VA_ARGS__)
 #define WARN_VERBOSE(str, ...)  std::cout << tfm::format(TERM_COLOR_YELLOW "%s(%d): " str "\n" TERM_COLOR_WHITE, __FILE__, __LINE__, ##__VA_ARGS__)
+#ifdef ERROR
+#   undef ERROR
+#endif
 #define ERROR(str, ...) throw std::runtime_error(tfm::format(TERM_COLOR_RED "\nError - %s(%d): " str "\n" TERM_COLOR_WHITE, __FILE__, __LINE__, ##__VA_ARGS__))
 
 #define VARLOG(x)           (std::cout << #x << ": " << (x) << std::endl)

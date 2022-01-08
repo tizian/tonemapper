@@ -7,6 +7,9 @@
 
 #include <Image.h>
 
+#include <limits>
+#include <filesystem>
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
@@ -18,9 +21,6 @@
 
 #define TINYEXR_IMPLEMENTATION
 #include <tinyexr.h>
-
-#include <limits>
-#include <filesystem>
 
 namespace tonemapper {
 
@@ -61,7 +61,7 @@ Image *loadFromEXR(const std::string &filename) {
     Image *result = new Image(img.width, img.height);
 
     int channels = img.num_channels;
-    int *chIdx = new int[channels];
+    int chIdx[4] = {0, 0, 0, 0};
     for (int ch = 0; ch < channels; ++ch) {
         if (strcmp(header.channels[ch].name, "R") == 0) chIdx[0] = ch;
         if (strcmp(header.channels[ch].name, "G") == 0) chIdx[1] = ch;
@@ -105,7 +105,6 @@ Image *loadFromEXR(const std::string &filename) {
 
     FreeEXRImage(&img);
     FreeEXRHeader(&header);
-    delete[] chIdx;
 
     return result;
 }
@@ -143,7 +142,7 @@ Image *loadFromHDR(const std::string &filename) {
 Image *Image::load(const std::string &filename) {
     Image *image = nullptr;
 
-    std::string extension = std::filesystem::path(filename).extension();
+    std::string extension = std::filesystem::path(filename).extension().string();
     if (extension == ".exr") {
         image = loadFromEXR(filename);
     } else if (extension == ".hdr") {
@@ -169,7 +168,7 @@ void Image::save(const std::string &filename) const {
     std::string out = filename;
     bool saveAsJpg;
 
-    std::string extension = std::filesystem::path(filename).extension();
+    std::string extension = std::filesystem::path(filename).extension().string();
     if (extension == ".jpg") {
         saveAsJpg = true;
     } else if (extension == ".png") {
@@ -207,9 +206,9 @@ void Image::save(const std::string &filename) const {
     int ret;
 
     if (saveAsJpg) {
-        ret = stbi_write_jpg(out.c_str(), m_width, m_height, 3, rgb8, 100);
+        ret = stbi_write_jpg(out.c_str(), int(m_width), int(m_height), 3, rgb8, 100);
     } else {
-        ret = stbi_write_png(out.c_str(), m_width, m_height, 3, rgb8, 3 * m_width);
+        ret = stbi_write_png(out.c_str(), int(m_width), int(m_height), 3, rgb8, 3 * int(m_width));
     }
 
     if (ret == 0) {
@@ -260,8 +259,8 @@ void Image::precompute() {
             }
         }
     }
-    m_mean /= (m_height * m_width);
-    m_meanLuminance /= (m_height * m_width);
+    m_mean /= float(m_height * m_width);
+    m_meanLuminance /= float(m_height * m_width);
 
     /* Eq. (1) in Eq. (1) in "Photographic Tone Reproduction for Digital Images"
        by Reinhard et al. 2002. divides by N after exponentiating. But this does not

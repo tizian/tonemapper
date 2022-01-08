@@ -175,12 +175,12 @@ public:
             }
         )glsl";
 
-        parameters["gamma"]  = Parameter(2.2f, 0.f,   10.f,       "gamma",  "Gamma correction value.");
-        parameters["tStr"]   = Parameter(0.5f, 0.f,   1.f,        "tStr",   "Toe strength.");
-        parameters["tLen"]   = Parameter(0.5f, 0.f,   1.f,        "tLen",   "Toe length.");
-        parameters["sStr"]   = Parameter(2.f,  0.f,   10.f,       "sStr",   "Shoulder strength.");
-        parameters["sLen"]   = Parameter(0.5f, 1e-5f, 1.f - 1e-5, "sLen",   "Shoulder length.");
-        parameters["sAngle"] = Parameter(1.f,  0.f,   1.f,        "sAngle", "Shoulder angle.");
+        parameters["gamma"]  = Parameter(2.2f, 0.f,   10.f,        "gamma",  "Gamma correction value.");
+        parameters["tStr"]   = Parameter(0.5f, 0.f,   1.f,         "tStr",   "Toe strength.");
+        parameters["tLen"]   = Parameter(0.5f, 0.f,   1.f,         "tLen",   "Toe length.");
+        parameters["sStr"]   = Parameter(2.f,  0.f,   10.f,        "sStr",   "Shoulder strength.");
+        parameters["sLen"]   = Parameter(0.5f, 1e-5f, 1.f - 1e-5f, "sLen",   "Shoulder length.");
+        parameters["sAngle"] = Parameter(1.f,  0.f,   1.f,         "sAngle", "Shoulder angle.");
     }
 
     Color3f map(const Color3f &color, float exposure) const override {
@@ -198,7 +198,7 @@ public:
         };
 
         auto evalDerivativeLinearGamma = [](float m, float b, float g, float x) {
-            return g * m * pow(m * x + b, g - 1.f);
+            return g * m * std::pow(m * x + b, g - 1.f);
         };
 
         auto solveAB = [](float x0, float y0, float m) {
@@ -211,7 +211,7 @@ public:
             float x0 = (x - offsetX) * scaleX,
                   y0 = 0.0;
             if (x0 > 0.0) {
-                y0 = exp(lnA + B * log(x0));
+                y0 = std::exp(lnA + B * log(x0));
             }
             return y0 * scaleY + offsetY;
         };
@@ -289,7 +289,7 @@ public:
                                        shoulderOffsetX, shoulderOffsetY,
                                        shoulderScaleX, shoulderScaleY,
                                        shoulderLnA, shoulderB);
-        float invScale = 1.0 / scale;
+        float invScale = 1.f / scale;
         toeOffsetY      *= invScale;
         toeScaleY       *= invScale;
         midOffsetY      *= invScale;

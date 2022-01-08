@@ -30,13 +30,13 @@
 #include <thread>
 #include <filesystem>
 
-const int SCREEN_WIDTH_DEFAULT  = 1280;
-const int SCREEN_HEIGHT_DEFAULT = 720;
+const size_t SCREEN_WIDTH_DEFAULT  = 1280;
+const size_t SCREEN_HEIGHT_DEFAULT = 720;
 
-const int MAIN_WINDOW_WIDTH   = 280;
+const size_t MAIN_WINDOW_WIDTH   = 280;
 
-const int GRAPH_WINDOW_WIDTH  = 280;
-const int GRAPH_WINDOW_HEIGHT = 200;
+const size_t GRAPH_WINDOW_WIDTH  = 280;
+const size_t GRAPH_WINDOW_HEIGHT = 200;
 
 namespace tonemapper {
 
@@ -185,7 +185,7 @@ void TonemapperGui::setImage(const std::string &filename) {
     }
 
     m_imageDisplayHeight = SCREEN_HEIGHT_DEFAULT;
-    m_imageDisplayWidth  = SCREEN_HEIGHT_DEFAULT * m_image->getWidth() / m_image->getHeight();
+    m_imageDisplayWidth  = SCREEN_HEIGHT_DEFAULT * int(m_image->getWidth() / m_image->getHeight());
     m_screenSize = Vector2i(std::max(1280, m_imageDisplayWidth), m_imageDisplayHeight);
     set_size(Vector2i(m_screenSize));
 
@@ -199,7 +199,7 @@ void TonemapperGui::setImage(const std::string &filename) {
     m_texture = new nanogui::Texture(
         nanogui::Texture::PixelFormat::RGB,
         nanogui::Texture::ComponentFormat::Float32,
-        Vector2i(m_image->getWidth(), m_image->getHeight()),
+        Vector2i(int(m_image->getWidth()), int(m_image->getHeight())),
         nanogui::Texture::InterpolationMode::Nearest,
         nanogui::Texture::InterpolationMode::Nearest
     );
@@ -237,9 +237,9 @@ void TonemapperGui::setExposureMode(int index) {
     m_exposurePopup->set_width(130);
     m_exposurePopup->set_height(130);
 
-    auto tmp = new Widget(m_exposurePopup);
-    tmp->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill));
-    auto popupPanel = new Widget(tmp);
+    auto tmpWidget = new Widget(m_exposurePopup);
+    tmpWidget->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill));
+    auto popupPanel = new Widget(tmpWidget);
     popupPanel->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 10, 10));
 
     for (int i = 0; i < 3; ++i) {
@@ -339,8 +339,8 @@ void TonemapperGui::setExposureMode(int index) {
     } else if (index == 2) {
         /* See Eqs. (1) and (11) in "Perceptual Effects in Real-time Tone Mapping"
            by Krawczyk et al. 2005. */
-        float tmp = 1.03f - 2.f / (2.f + std::log10(m_image->getLogMeanLuminance() + 1.f));
-        m_exposure = tmp / m_image->getLogMeanLuminance();
+        float key = 1.03f - 2.f / (2.f + std::log10(m_image->getLogMeanLuminance() + 1.f));
+        m_exposure = key / m_image->getLogMeanLuminance();
     }
 
     setTonemapOperator(m_tonemapOperatorIndex);
@@ -350,7 +350,7 @@ void TonemapperGui::setTonemapOperator(const std::string &name) {
     std::vector<std::string> operatorNames = TonemapOperator::orderedNames();
     auto it = std::find(operatorNames.begin(), operatorNames.end(), name);
     if (it != operatorNames.end()) {
-        setTonemapOperator(std::distance(operatorNames.begin(), it));
+        setTonemapOperator(int(std::distance(operatorNames.begin(), it)));
     }
 }
 
@@ -419,7 +419,7 @@ void TonemapperGui::setTonemapOperator(int index) {
         button->set_flags(Button::RadioButton);
         button->set_callback([&, i] {
             m_tonemapPopup->set_visible(false);
-            setTonemapOperator(i);
+            setTonemapOperator(int(i));
         });
     }
     m_tonemapPopupButton->set_caption(op->name);
@@ -489,28 +489,28 @@ void TonemapperGui::setTonemapOperator(int index) {
                 std::filesystem::path path(filename);
 
                 m_tonemapWidget->remove_child(m_rfLabel);
-                std::string label = "RF: " + std::string(path.stem());
+                std::string label = "RF: " + path.stem().string();
                 m_rfLabel = new Label(m_tonemapWidget, label, "sans-bold");
                 refreshGraph();
 
                 m_rfTextureR = new nanogui::Texture(
                     nanogui::Texture::PixelFormat::R,
                     nanogui::Texture::ComponentFormat::Float32,
-                    Vector2i(op->irradiance.size(), 1),
+                    Vector2i(int(op->irradiance.size()), 1),
                     nanogui::Texture::InterpolationMode::Bilinear,
                     nanogui::Texture::InterpolationMode::Bilinear
                 );
                 m_rfTextureG = new nanogui::Texture(
                     nanogui::Texture::PixelFormat::R,
                     nanogui::Texture::ComponentFormat::Float32,
-                    Vector2i(op->irradiance.size(), 1),
+                    Vector2i(int(op->irradiance.size()), 1),
                     nanogui::Texture::InterpolationMode::Bilinear,
                     nanogui::Texture::InterpolationMode::Bilinear
                 );
                 m_rfTextureB = new nanogui::Texture(
                     nanogui::Texture::PixelFormat::R,
                     nanogui::Texture::ComponentFormat::Float32,
-                    Vector2i(op->irradiance.size(), 1),
+                    Vector2i(int(op->irradiance.size()), 1),
                     nanogui::Texture::InterpolationMode::Bilinear,
                     nanogui::Texture::InterpolationMode::Bilinear
                 );
@@ -550,15 +550,15 @@ void TonemapperGui::refreshGraph() {
         float t = float(i) / (res - 1),
               v = std::pow(2.f, 7.f*t - 5.f);
 
-        Color3f res = m_operators[m_tonemapOperatorIndex]->map(Color3f(v), 1.f);
+        Color3f c = m_operators[m_tonemapOperatorIndex]->map(Color3f(v), 1.f);
         for (size_t ch = 0; ch < 3; ++ch) {
-            if (!std::isfinite(res[i])) {
-                res[i] = 0.f;
+            if (!std::isfinite(c[i])) {
+                c[i] = 0.f;
             }
         }
-        valuesR[i] = res.r();
-        valuesG[i] = res.g();
-        valuesB[i] = res.b();
+        valuesR[i] = c.r();
+        valuesG[i] = c.g();
+        valuesB[i] = c.b();
 
     }
     m_graph->set_valuesR(valuesR);
@@ -603,8 +603,8 @@ bool TonemapperGui::keyboard_event(int key, int scancode, int action, int modifi
     if (fullscreen) {
         float scale = std::pow(1.1f, m_imageDisplayScale);
         Vector2f screenSize = Vector2f(m_screenSize),
-                 imageSize  = scale*Vector2f(m_image->getWidth(),
-                                             m_image->getHeight());
+                 imageSize  = scale*Vector2f(float(m_image->getWidth()),
+                                             float(m_image->getHeight()));
 
         Vector2f fullScale = screenSize / imageSize;
         scale *= fullScale.x() < fullScale.y() ? fullScale.x() : fullScale.y();
@@ -660,7 +660,7 @@ bool TonemapperGui::resize_event(const Vector2i& screenSizeNew) {
 
 bool TonemapperGui::drop_event(const std::vector<std::string> &filenames) {
     if (filenames.size() > 0) {
-        std::string extension = std::filesystem::path(filenames[0]).extension();
+        std::string extension = std::filesystem::path(filenames[0]).extension().string();
         if (extension != ".exr" && extension != ".hdr") {
             auto dlg = new MessageDialog(this, MessageDialog::Type::Warning, "Unsupported image format", "Only EXR (.exr) and HDR (.hdr) image formats are supported currently.");
             dlg->center();
@@ -679,10 +679,10 @@ void TonemapperGui::draw_contents() {
         m_texture->upload((const uint8_t *)m_image->getData());
 
         float scale = m_pixel_ratio * std::pow(1.1f, m_imageDisplayScale);
-        GLint x = (GLint) (m_fbsize[0] - scale*m_imageDisplayWidth)  / 2 + m_pixel_ratio*m_imageDisplayOffsetX;
-        GLint y = (GLint) (m_fbsize[1] - scale*m_imageDisplayHeight) / 2 - m_pixel_ratio*m_imageDisplayOffsetY;
-        GLsizei width  = (GLsizei) (scale*m_imageDisplayWidth);
-        GLsizei height = (GLsizei) (scale*m_imageDisplayHeight);
+        GLint x = GLint((m_fbsize[0] - scale*m_imageDisplayWidth)  / 2 + m_pixel_ratio*m_imageDisplayOffsetX);
+        GLint y = GLint((m_fbsize[1] - scale*m_imageDisplayHeight) / 2 - m_pixel_ratio*m_imageDisplayOffsetY);
+        GLsizei width  = GLsizei(scale*m_imageDisplayWidth);
+        GLsizei height = GLsizei(scale*m_imageDisplayHeight);
         glViewport(x, y, width, height);
 
         TonemapOperator *op = m_operators[m_tonemapOperatorIndex];
@@ -691,9 +691,11 @@ void TonemapperGui::draw_contents() {
             m_shader->draw_array(nanogui::Shader::PrimitiveType::Triangle, 0, 6, true);
             m_shader->set_uniform("exposure", m_exposure);
 
-            for (auto &parameter : op->parameters) {
-                Parameter &p = parameter.second;
-                m_shader->set_uniform(p.uniform, p.value);
+            if (op) {
+                for (auto& parameter : op->parameters) {
+                    Parameter& p = parameter.second;
+                    m_shader->set_uniform(p.uniform, p.value);
+                }
             }
             m_shader->end();
         }
@@ -742,7 +744,7 @@ void RgbGraph::draw(NVGcontext *ctx) {
     Widget::draw(ctx);
 
     nvgBeginPath(ctx);
-    nvgRect(ctx, m_pos.x(), m_pos.y(), m_size.x(), m_size.y());
+    nvgRect(ctx, float(m_pos.x()), float(m_pos.y()), float(m_size.x()), float(m_size.y()));
     nvgFillColor(ctx, backgroundColor);
     nvgFill(ctx);
 
@@ -752,7 +754,7 @@ void RgbGraph::draw(NVGcontext *ctx) {
         }
 
         nvgBeginPath(ctx);
-        nvgMoveTo(ctx, m_pos.x(), m_pos.y()+m_size.y());
+        nvgMoveTo(ctx, float(m_pos.x()), float(m_pos.y()+m_size.y()));
         for (size_t i = 0; i < (size_t) m_values[ch].size(); i++) {
             float value = m_values[ch][i];
             float vx = m_pos.x() + i * m_size.x() / (float) (m_values[ch].size() - 1);
@@ -760,7 +762,7 @@ void RgbGraph::draw(NVGcontext *ctx) {
             nvgLineTo(ctx, vx, vy);
         }
 
-        nvgLineTo(ctx, m_pos.x() + m_size.x(), m_pos.y() + m_size.y());
+        nvgLineTo(ctx, float(m_pos.x() + m_size.x()), float(m_pos.y() + m_size.y()));
         nvgStrokeColor(ctx, strokeColors[ch]);
         nvgStrokeWidth(ctx, 2);
         nvgStroke(ctx);
@@ -776,25 +778,25 @@ void RgbGraph::draw(NVGcontext *ctx) {
         nvgFontSize(ctx, 14.0f);
         nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
         nvgFillColor(ctx, textColor);
-        nvgText(ctx, m_pos.x() + 3, m_pos.y() + 1, m_caption.c_str(), NULL);
+        nvgText(ctx, float(m_pos.x() + 3), float(m_pos.y() + 1), m_caption.c_str(), NULL);
     }
 
     if (!m_header.empty()) {
         nvgFontSize(ctx, 18.0f);
         nvgTextAlign(ctx, NVG_ALIGN_RIGHT | NVG_ALIGN_TOP);
         nvgFillColor(ctx, textColor);
-        nvgText(ctx, m_pos.x() + m_size.x() - 3, m_pos.y() + 1, m_header.c_str(), NULL);
+        nvgText(ctx, float(m_pos.x() + m_size.x() - 3), float(m_pos.y() + 1), m_header.c_str(), NULL);
     }
 
     if (!m_footer.empty()) {
         nvgFontSize(ctx, 15.0f);
         nvgTextAlign(ctx, NVG_ALIGN_RIGHT | NVG_ALIGN_BOTTOM);
         nvgFillColor(ctx, textColor);
-        nvgText(ctx, m_pos.x() + m_size.x() - 3, m_pos.y() + m_size.y() - 1, m_footer.c_str(), NULL);
+        nvgText(ctx, float(m_pos.x() + m_size.x() - 3), float(m_pos.y() + m_size.y() - 1), m_footer.c_str(), NULL);
     }
 
     nvgBeginPath(ctx);
-    nvgRect(ctx, m_pos.x(), m_pos.y(), m_size.x(), m_size.y());
+    nvgRect(ctx, float(m_pos.x()), float(m_pos.y()), float(m_size.x()), float(m_size.y()));
     nvgStrokeColor(ctx, Color(100, 255));
     nvgStroke(ctx);
 }

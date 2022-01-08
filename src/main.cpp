@@ -20,7 +20,7 @@
 
 using namespace tonemapper;
 
-void printUsage(char **argv) {
+void printUsage() {
     PRINT("");
     PRINT("Usage:");
 #ifdef TONEMAPPER_BUILD_GUI
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 
     for (int i = 1; i < argc; ++i) {
         std::string token(argv[i]);
-        std::string extension = std::filesystem::path(token).extension();
+        std::string extension = std::filesystem::path(token).extension().string();
 
         if (token.compare("--help") == 0) {
             showHelp = true;
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
             if (i + 1 >= argc) {
                 warnings.push_back("Parameter \"exposure-value\" expects a float value following it.");
             } else {
-                exposureInput = atof(argv[i + 1]);
+                exposureInput = strtof(argv[i + 1], nullptr);
                 i++;
             }
         } else if (token.compare("--exposure-key") == 0) {
@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
             if (i + 1 >= argc) {
                 warnings.push_back("Parameter \"exposure-key\" expects a float value following it.");
             } else {
-                exposureInput = atof(argv[i + 1]);
+                exposureInput = strtof(argv[i + 1], nullptr);
                 i++;
             }
         } else if (token.compare("--exposure-auto") == 0) {
@@ -226,8 +226,8 @@ int main(int argc, char **argv) {
     }
 
     if (tm) {
-        int len = additionalTokens.size();
-        for (int i = 0; i < len; ++i) {
+        size_t len = additionalTokens.size();
+        for (size_t i = 0; i < len; ++i) {
             std::string token = additionalTokens[i];
             if (token.compare(0, 2, "--") != 0 || token.length() < 3) {
                 warnings.push_back("Operator parameter \"" + token + "\" has wrong formatting. (Too short or no proceeding \"--\")");
@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
                     if (i + 1 >= len) {
                         warnings.push_back("Operator parameter \"" + token + "\" expects a float value following it.");
                     } else {
-                        float value = atof(additionalTokens[i + 1].c_str());
+                        float value = strtof(additionalTokens[i + 1].c_str(), nullptr);
                         tm->parameters.at(param).value = value;
                         i++;
                     }
@@ -265,7 +265,7 @@ int main(int argc, char **argv) {
     }
 
     if (showHelp) {
-        printUsage(argv);
+        printUsage();
         printHelp(tm);
         PRINT("");
         if (warnings.size() > 0) {
@@ -274,7 +274,7 @@ int main(int argc, char **argv) {
     }
 
     if (warnings.size() > 0) {
-        printUsage(argv);
+        printUsage();
         printHelp(tm);
         PRINT("");
         WARN("%s", warnings[0]);
@@ -283,26 +283,28 @@ int main(int argc, char **argv) {
     }
     PRINT("");
 
-    PRINT("* Chosen operator: \"%s\"", tm->name);
-    PRINT("* Parameters:");
-    size_t maxLength = 0;
-    for (auto &parameter : tm->parameters) {
-        maxLength = std::max(maxLength, parameter.first.size());
+    if (tm) {
+        PRINT("* Chosen operator: \"%s\"", tm->name);
+        PRINT("* Parameters:");
+        size_t maxLength = 0;
+        for (auto& parameter : tm->parameters) {
+            maxLength = std::max(maxLength, parameter.first.size());
+        }
+        if (tm->dataDriven) {
+            maxLength = std::max(maxLength, std::string("file").size());
+        }
+        for (auto& parameter : tm->parameters) {
+            auto& p = parameter.second;
+            if (p.constant) continue;
+            size_t spaces = maxLength - parameter.first.size() + 1;
+            PRINT("    %s%s= %.3f", parameter.first, std::string(spaces, ' '), p.value);
+        }
+        if (tm->dataDriven) {
+            size_t spaces = maxLength - std::string("file").size() + 1;
+            PRINT("    %s%s= %.3f", "file", std::string(spaces, ' '), rfFilename);
+        }
+        PRINT("");
     }
-    if (tm->dataDriven) {
-        maxLength = std::max(maxLength, std::string("file").size());
-    }
-    for (auto &parameter : tm->parameters) {
-        auto &p = parameter.second;
-        if (p.constant) continue;
-        size_t spaces = maxLength - parameter.first.size() + 1;
-        PRINT("    %s%s= %.3f", parameter.first, std::string(spaces, ' '), p.value);
-    }
-    if (tm->dataDriven) {
-        size_t spaces = maxLength - std::string("file").size() + 1;
-        PRINT("    %s%s= %.3f", "file", std::string(spaces, ' '), rfFilename);
-    }
-    PRINT("");
 
     for (size_t i = 0; i < inputImages.size(); ++i) {
         PRINT_("* Read \"%s\" .. ", inputImages[i]);
@@ -325,11 +327,12 @@ int main(int argc, char **argv) {
         }
 
         Image *out = new Image(img->getWidth(), img->getHeight());
-
-        PRINT_("  Processing %d x %d pixels, exposure = %.2f .. ", img->getWidth(), img->getHeight(), exposure);
-        tm->process(img, out, exposure);
-        PRINT("done.");
-
+           
+        if (tm) {
+            PRINT_("  Processing %d x %d pixels, exposure = %.2f .. ", img->getWidth(), img->getHeight(), exposure);
+            tm->process(img, out, exposure);
+            PRINT("done.");
+        }
         std::string outname = inputImages[i].substr(0, inputImages[i].size() - 4);
         if (saveAsJpg) {
             outname += ".jpg";

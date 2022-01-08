@@ -11,6 +11,7 @@
 #include <Color.h>
 #include <Image.h>
 #include <map>
+#include <functional>
 
 namespace tonemapper {
 
@@ -23,21 +24,20 @@ struct Parameter {
     std::string description;
     bool constant;
 
-    Parameter() {}
+    Parameter()
+        : value(0.f), defaultValue(0.f), minValue(0.f), maxValue(0.f), uniform(""), description(""), constant(true) {}
 
     Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform, const std::string &description)
-        : value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue),
-        uniform(uniform), description(description), constant(false) {}
+        : value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue), uniform(uniform), description(description), constant(false) {}
 
     Parameter(float value, const std::string &uniform, const std::string &description)
-        : value(value), uniform(uniform), description(description), constant(true) {}
+        : value(value), defaultValue(value), minValue(value), maxValue(value), uniform(uniform), description(description), constant(true) {}
 
     Parameter(float defaultValue, float minValue, float maxValue, const std::string &uniform)
-        : value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue),
-        uniform(uniform), description(""), constant(false) {}
+        : value(defaultValue), defaultValue(defaultValue), minValue(minValue), maxValue(maxValue), uniform(uniform), description(""), constant(false) {}
 
     Parameter(float value, const std::string &uniform)
-        : value(value), uniform(uniform), description(""), constant(true) {}
+        : value(value), defaultValue(value), minValue(value), maxValue(value), uniform(uniform), description(""), constant(true) {}
 };
 
 typedef std::map<std::string, Parameter> ParameterMap;

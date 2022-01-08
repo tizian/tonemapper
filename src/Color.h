@@ -132,6 +132,14 @@ struct Color3f {
         return c[i];
     }
 
+    float& operator[](size_t i) {
+        return c[i];
+    }
+
+    float operator[](size_t i) const {
+        return c[i];
+    }
+
     bool operator==(const Color3f &c2) const {
         for (int i = 0; i < 3; ++i) {
             if (c[i] != c2[i]) return false;

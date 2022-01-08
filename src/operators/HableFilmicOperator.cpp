@@ -53,7 +53,7 @@ public:
         )glsl";
 
         parameters["gamma"] = Parameter(2.2f,  0.f, 10.f, "gamma", "Gamma correction value.");
-        parameters["A"]     = Parameter(0.15,  0.f, 1.f,  "A",     "Shoulder strength.");
+        parameters["A"]     = Parameter(0.15f, 0.f, 1.f,  "A",     "Shoulder strength.");
         parameters["B"]     = Parameter(0.5f,  0.f, 1.f,  "B",     "Linear strength.");
         parameters["C"]     = Parameter(0.1f,  0.f, 1.f,  "C",     "Linear angle.");
         parameters["D"]     = Parameter(0.2f,  0.f, 1.f,  "D",     "Toe strength.");

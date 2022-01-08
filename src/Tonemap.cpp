@@ -32,7 +32,7 @@ TonemapOperator::TonemapOperator() {
 
 TonemapOperator::~TonemapOperator() {}
 
-void TonemapOperator::preprocess(const Image *image) {}
+void TonemapOperator::preprocess(const Image */*image*/) {}
 
 // Process each pixel in the image
 void TonemapOperator::process(const Image *input, Image *output, float exposure, float *progress) const {
@@ -48,7 +48,7 @@ void TonemapOperator::process(const Image *input, Image *output, float exposure,
     }
 }
 
-void TonemapOperator::fromFile(const std::string &filename) {}
+void TonemapOperator::fromFile(const std::string &/*filename*/) {}
 
 std::map<std::string, TonemapOperator::Constructor> *TonemapOperator::constructors = nullptr;
 

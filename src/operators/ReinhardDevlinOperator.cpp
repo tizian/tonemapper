@@ -79,7 +79,7 @@ public:
         float min      = image->getMinimumLuminance(),
               max      = image->getMaximumLuminance(),
               k        = (std::log(max) - image->getLogMeanLuminance()) / (std::log(max) - std::log(min)),
-              mDefault = 0.3f + 0.7f * pow(k, 1.4f);
+              mDefault = 0.3f + 0.7f * std::pow(k, 1.4f);
         parameters["m"] = Parameter(mDefault, 0.3f, 1.f, "m", "Contrast parameter.");
 
         parameters["Lavg"] = Parameter(image->getMeanLuminance(), "Lavg");
@@ -110,9 +110,9 @@ public:
         // Apply tonemapping curve, separately for each channel
         f = std::exp(-f);
         float    L     = luminance(Cin);
-        Color3f  Il    = c * Cin   + (1.0 - c) * L,
-                 Ig    = c * Cmean + (1.0 - c) * Lavg,
-                 Ia    = a * Il    + (1.0 - c) * Ig,
+        Color3f  Il    = c * Cin   + (1.f - c) * L,
+                 Ig    = c * Cmean + (1.f - c) * Lavg,
+                 Ia    = a * Il    + (1.f - c) * Ig,
                  Cout  = Cin / (Cin + pow(f * Ia, m));
 
         // Apply gamma curve and clamp

@@ -76,10 +76,10 @@ public:
         // Apply curve directly on color input
         float a = contrast,
               d = shoulder,
-              b = (-pow(midIn, a) + pow(hdrMax, a) * midOut) /
-                  ((pow(hdrMax, a * d) - pow(midIn, a * d)) * midOut),
-              c = (pow(hdrMax, a * d) * pow(midIn, a) - pow(hdrMax, a) * pow(midIn, a * d) * midOut) /
-                  ((pow(hdrMax, a * d) - pow(midIn, a * d)) * midOut);
+              b = (-std::pow(midIn, a) + std::pow(hdrMax, a) * midOut) /
+                  ((std::pow(hdrMax, a * d) - std::pow(midIn, a * d)) * midOut),
+              c = (std::pow(hdrMax, a * d) * std::pow(midIn, a) - std::pow(hdrMax, a) * std::pow(midIn, a * d) * midOut) /
+                  ((std::pow(hdrMax, a * d) - std::pow(midIn, a * d)) * midOut);
         Color3f Cout = pow(Cin, a) / (pow(Cin, a * d) * b + c);
 
         // Apply gamma curve and clamp

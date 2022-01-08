@@ -8,6 +8,7 @@
 #include <Tonemap.h>
 
 #include <fstream>
+#include <filesystem>
 
 namespace tonemapper {
 
@@ -68,7 +69,7 @@ public:
                     result[i] = 1.f;
                 }
 
-                int idx = findInterval(irradiance.size(), [&](size_t idx) {
+                size_t idx = findInterval(irradiance.size(), [&](size_t idx) {
                     return irradiance[idx] <= x;
                 });
                 float x0 = irradiance[idx],
