@@ -15,7 +15,7 @@ class UchimuraFilmicOperator : public TonemapOperator {
 public:
     UchimuraFilmicOperator() : TonemapOperator() {
         name = "Uchimura Filmic";
-        description = R"(Filmic curve by Hijime Uchimura, described in his CEDEC
+        description = R"(Filmic curve by Hajime Uchimura, described in his CEDEC
             talk "HDR Theory and Practice". Also known as the "Gran Turismo
             curve".)";
 

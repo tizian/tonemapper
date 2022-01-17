@@ -62,7 +62,7 @@ Tonemapper is a an application to compare and apply various tone mapping operato
 * **Hable (Updated) Filmic**: From the "[Filmic Tonemapping with Piecewise Power Curves](http://filmicworlds.com/blog/filmic-tonemapping-with-piecewise-power-curves/)" blog post by John Hable.
 * **Lottes Filmic**: From the "[Advanced Techniques and Optimization of HDR Color Pipelines](https://www.gdcvault.com/play/1023512/Advanced-Graphics-Techniques-Tutorial-Day)" GDC talk by Timothy Lottes
 * **Day Filmic**: From the "[An efficient and user-friendly tone mapping operator](https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2012/09/an-efficient-and-user-friendly-tone-mapping-operator.pdf)" document by Mike Day
-* **Uchimura Filmic**: From the "[HDR Theory and Practice](https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp)" CEDEC talk by Hijime Uchimura
+* **Uchimura Filmic**: From the "[HDR Theory and Practice](https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp)" CEDEC talk by Hajime Uchimura
 
 <p></p>
 
