@@ -68,7 +68,7 @@ Tonemapper is a an application to compare and apply various tone mapping operato
 
 * **Hill ACES**: ACES curve [fit](https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl) by Stephen Hill
 * **Narkowicz ACES**: ACES curve [fit](https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/) by Krzysztof Narkowicz
-* **Hill ACES**: ACES curve [fit](https://www.shadertoy.com/view/llXyWr) by Romain Guy
+* **Guy ACES**: ACES curve [fit](https://www.shadertoy.com/view/llXyWr) by Romain Guy
 
 <p></p>
 
