@@ -54,13 +54,18 @@ public:
         )glsl";
 
         parameters["gamma"] = Parameter(2.2f, 0.f, 10.f, "gamma", "Gamma correction value.");
+        parameters["Lwhite"] = Parameter(std::numeric_limits<float>::infinity(), 0.f, 0.f, "Lwhite", "Smallest luminance that is mapped to 1.");
     }
 
     void preprocess(const Image *image) override {
-        float min = image->getMinimumLuminance(),
-              max = image->getMaximumLuminance(),
-              start = 0.5f*(min + max);
-        parameters["Lwhite"] = Parameter(start, min, max, "Lwhite", "Smallest luminance that is mapped to 1.");
+        if (parameters.find("Lwhite") != parameters.end()) {
+            if (parameters["Lwhite"].value == std::numeric_limits<float>::infinity()) {
+                float min = image->getMinimumLuminance(),
+                      max = image->getMaximumLuminance(),
+                      start = 0.5f*(min + max);
+                parameters["Lwhite"] = Parameter(start, min, max, "Lwhite", "Smallest luminance that is mapped to 1.");
+            }
+        }
     }
 
     Color3f map(const Color3f &color, float exposure) const override {
