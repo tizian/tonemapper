@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2022 Tizian Zeltner
 
-    Tone Mapper is provided under the MIT License.
+    tonemapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license.
 */
 
@@ -86,7 +86,7 @@ TonemapperGui::TonemapperGui()
         std::ostringstream oss;
         oss << "tonemapper v" << VERSION << std::endl
             << std::endl
-            << "Copyright (c) " << YEAR << " Tizian Zeltner" << std::endl
+            << "© " << YEAR << " Tizian Zeltner" << std::endl
             << std::endl
             << "More information can be found at" << std::endl
             << "http://github.com/tizian/tonemapper" << std::endl;
@@ -158,7 +158,7 @@ TonemapperGui::TonemapperGui()
     set_visible(true);
 
     std::ostringstream oss;
-    oss << "Tone Mapper v" << VERSION;
+    oss << "tonemapper v" << VERSION;
     std::string title = oss.str();
     set_caption(title);
     PRINT("");

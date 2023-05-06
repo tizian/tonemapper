@@ -3,7 +3,7 @@
 
     Operator originally contributed by Nick Porcino.
 
-    Tone Mapper is provided under the MIT License.
+    tonemapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license.
 */
 

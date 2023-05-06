@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.13...3.18)
 
-set(YEAR    "2022")
-set(VERSION "2.0.0")
+set(YEAR    "2023")
+set(VERSION "2.0.1")
 add_definitions(-D YEAR=\\""${YEAR}"\\")
 add_definitions(-D VERSION=\\""${VERSION}"\\")
 
@@ -161,7 +161,8 @@ if (APPLE AND TONEMAPPER_MACOS_BUNDLE)
     set(MACOSX_BUNDLE_ICON_FILE tonemapper.icns)
     set(MACOSX_BUNDLE_BUNDLE_NAME "tonemapper")
     set(MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION})
-    set(MACOSX_BUNDLE_COPYRIGHT "© 2022 Tizian Zeltner")
+    string(CONCAT COPYRIGHT "© " ${YEAR} " Tizian Zeltner")
+    set(MACOSX_BUNDLE_COPYRIGHT ${COPYRIGHT})
     set(macOSIcon ${CMAKE_CURRENT_SOURCE_DIR}/res/tonemapper.icns)
     set_source_files_properties(${macOSIcon} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 

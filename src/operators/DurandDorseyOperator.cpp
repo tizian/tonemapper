@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2022 Tizian Zeltner
 
-    Tone Mapper is provided under the MIT License.
+    tonemapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license.
 */
 

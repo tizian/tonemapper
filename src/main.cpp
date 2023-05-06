@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2022 Tizian Zeltner
 
-    Tone Mapper is provided under the MIT License.
+    tonemapper is provided under the MIT License.
     See the LICENSE.txt file for the conditions of the license.
 */
 
@@ -110,7 +110,7 @@ void printHelp(const TonemapOperator *tm) {
 int main(int argc, char **argv) {
     PRINT("=========================");
     PRINT(" tonemapper v%s", VERSION);
-    PRINT(" (c) %s Tizian Zeltner", YEAR);
+    PRINT(" © %s Tizian Zeltner", YEAR);
     PRINT("=========================");
 
     std::vector<std::string> operatorNames = TonemapOperator::orderedNames();
