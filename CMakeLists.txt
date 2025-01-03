@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.13...3.18)
 
-set(YEAR    "2023")
-set(VERSION "2.0.1")
+set(YEAR    "2025")
+set(VERSION "2.0.2")
 add_definitions(-D YEAR=\\""${YEAR}"\\")
 add_definitions(-D VERSION=\\""${VERSION}"\\")
 

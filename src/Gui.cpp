@@ -184,7 +184,16 @@ void TonemapperGui::setImage(const std::string &filename) {
     }
 
     m_imageDisplayHeight = SCREEN_HEIGHT_DEFAULT;
-    m_imageDisplayWidth  = SCREEN_HEIGHT_DEFAULT * int(m_image->getWidth() / m_image->getHeight());
+    m_imageDisplayWidth  = SCREEN_HEIGHT_DEFAULT;
+    float ratio = (float) m_image->getWidth() / (float) m_image->getHeight();
+    if (ratio > 1.f) {
+        m_imageDisplayHeight = SCREEN_WIDTH_DEFAULT / ratio;
+        m_imageDisplayWidth  = SCREEN_WIDTH_DEFAULT;
+    } else if (ratio < 1.f) {
+        m_imageDisplayHeight = SCREEN_HEIGHT_DEFAULT;
+        m_imageDisplayWidth  = SCREEN_HEIGHT_DEFAULT * ratio;
+    }
+
     m_screenSize = Vector2i(std::max(int(SCREEN_WIDTH_DEFAULT), m_imageDisplayWidth), m_imageDisplayHeight);
     set_size(Vector2i(m_screenSize));
 
